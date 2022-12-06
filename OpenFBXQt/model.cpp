@@ -161,6 +161,9 @@ void Model::paintGL(const QMatrix4x4 &projection)
 
     switch(material.type)
     {
+    case ofbxqt::Material::Type::Color:
+        colorMaterial = static_cast<const ColorMaterial*>(&material);
+        break;
     case ofbxqt::Material::Type::Image:
         textureMaterial = static_cast<const TextureMaterial*>(&material);
         if (textureMaterial->texture)
@@ -173,9 +176,6 @@ void Model::paintGL(const QMatrix4x4 &projection)
             qCritical() << Q_FUNC_INFO << "texture is null";
 #endif
         }
-        break;
-    case ofbxqt::Material::Type::Color:
-        colorMaterial = static_cast<const ColorMaterial*>(&material);
         break;
     }
 
