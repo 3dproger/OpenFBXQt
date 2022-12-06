@@ -103,8 +103,6 @@ public:
     friend class Model;
     friend class Loader;
 
-    inline static const ColorMaterial defaultMaterial = ColorMaterial();
-
 private:
     ModelDataStorage(){}
 

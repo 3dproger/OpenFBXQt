@@ -1,5 +1,7 @@
 #include "scene.h"
 #include <QtMath>
+#include <algorithm>
+#include <random>
 
 namespace ofbxqt
 {

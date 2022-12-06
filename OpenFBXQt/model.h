@@ -23,10 +23,12 @@ public:
     void initializeGL();
     void paintGL(const QMatrix4x4& projectionMatrix);
 
+    void setMaterial(Material* material);
+
 private:
     bool initializedGL = false;
 
-    const Material& getMaterial();
+    Material* material = nullptr;
 
     const ModelData& data;
     QMatrix4x4 matrix;
