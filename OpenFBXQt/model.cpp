@@ -197,7 +197,16 @@ void Model::paintGL(const QMatrix4x4 &projection)
     }
     else if (material.type == Material::Type::Color)
     {
-        data.shader.setUniformValue("u_color", colorMaterial->color);
+        if (colorMaterial)
+        {
+            data.shader.setUniformValue("u_color", colorMaterial->color);
+        }
+        else
+        {
+#ifdef QT_DEBUG
+            qCritical() << Q_FUNC_INFO << "color material is null";
+#endif
+        }
     }
 
     if (needUpdateSkeleton)
@@ -234,7 +243,7 @@ void Model::paintGL(const QMatrix4x4 &projection)
 
     data.shader.release();
 
-    if (material.type == Material::Type::Image && textureMaterial->texture)
+    if (material.type == Material::Type::Image && textureMaterial && textureMaterial->texture)
     {
         textureMaterial->texture->release();
     }
