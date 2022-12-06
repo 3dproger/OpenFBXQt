@@ -81,8 +81,6 @@ struct VertexAttributeInfo
 
 struct ModelData
 {
-    Material* material = nullptr;
-
     QMatrix4x4 sourceMatrix;
 
     const GLenum drawElementsMode = GL_TRIANGLES;
@@ -103,15 +101,6 @@ struct ModelData
     mutable QOpenGLShaderProgram shader;
 
     Skeleton skeleton;
-
-    ~ModelData()
-    {
-        if (material)
-        {
-            delete material;
-            material = nullptr;
-        }
-    }
 };
 
 class ModelDataStorage
