@@ -26,10 +26,11 @@ void MainWindow::on_actionOpen_triggered()
     }
 
     QList<ofbxqt::Note> notes;
-    ofbxqt::Model* model = ofbxqt::Loader::load(fileName, notes);
+    const QList<ofbxqt::Model*> models = ofbxqt::Loader::load(fileName, notes);
 
-    QString errorText = tr("Model not loaded");
+    QString errorText = tr("File not loaded");
 
+    bool foundError = false;
     for (const ofbxqt::Note& note : qAsConst(notes))
     {
         switch (note.getType())
@@ -42,6 +43,8 @@ void MainWindow::on_actionOpen_triggered()
             break;
         case ofbxqt::Note::Type::Error:
         {
+            foundError = true;
+
             if (!errorText.isEmpty())
             {
                 errorText += ". ";
@@ -53,27 +56,32 @@ void MainWindow::on_actionOpen_triggered()
         }
     }
 
-    if (!model)
+    if (foundError || models.isEmpty())
     {
         QMessageBox::critical(this, QString(), errorText);
         return;
     }
 
     // ============= TEST ==================
-    if (ofbxqt::Joint* j = model->skeleton.getJointByName("Bone.Forefinger.002"); j)
+    if (ofbxqt::Joint* j = models[0]->skeleton.getJointByName("Bone.Forefinger.002"); j)
     {
         j->setRotation(QQuaternion::fromAxisAndAngle(QVector3D(0, 0, 1).normalized(), -30));
     }
 
-    if (ofbxqt::Joint* j = model->skeleton.getJointByName("Bone.Forefinger.003"); j)
+    if (ofbxqt::Joint* j = models[0]->skeleton.getJointByName("Bone.Forefinger.003"); j)
     {
         j->setRotation(QQuaternion::fromAxisAndAngle(QVector3D(0, 0, 1).normalized(), -45));
     }
+
+    models[0]->skeleton.update();
     // ============= TEST ==================
 
-    model->skeleton.update();
+    qDebug() << "Loaded" << models.count() << "models";
 
-    ui->sceneWidget->scene.addModel(model);
+    for (ofbxqt::Model* model : models)
+    {
+        ui->sceneWidget->scene.addModel(model);
+    }
 }
 
 void MainWindow::on_actionExit_triggered()

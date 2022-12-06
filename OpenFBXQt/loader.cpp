@@ -23,7 +23,7 @@ static bool compareJointData(const QPair<GLuint, GLfloat>& joint1, const QPair<G
     return joint1.second >= joint2.second;
 }
 
-Model *Loader::load(const QString &fileName, QList<Note>& notes)
+QList<Model*> Loader::load(const QString &fileName, QList<Note>& notes)
 {
     notes = QList<Note>();
 
@@ -32,7 +32,7 @@ Model *Loader::load(const QString &fileName, QList<Note>& notes)
     {
         notes.append(Note(Note::Type::Error, QTranslator::tr("Failed to open file \"%1\", error: \"%2\"")
                 .arg(fileName, file.errorString())));
-        return nullptr;
+        return QList<Model*>();
     }
 
     const QByteArray rawData = file.readAll();
@@ -42,25 +42,176 @@ Model *Loader::load(const QString &fileName, QList<Note>& notes)
     if (!scene)
     {
         notes.append(Note(Note::Type::Error, QTranslator::tr("No scene")));
-        return nullptr;
+        return QList<Model*>();
     }
 
     const int meshCount = scene->getMeshCount();
     if (meshCount <= 0)
     {
         notes.append(Note(Note::Type::Error, QTranslator::tr("No meshes in scene")));
-        return nullptr;
-    }
-    else if (meshCount > 1)
-    {
-        notes.append(Note(Note::Type::Warning, QTranslator::tr("Meshes more than 1 found, only the first one will be loaded")));
+        return QList<Model*>();
     }
 
-    const ofbx::Mesh* mesh = scene->getMesh(0);
+    QList<Model*> models;
+    for (int i = 0; i < meshCount; ++i)
+    {
+        Model* model = loadMesh(scene->getMesh(i), notes);
+        if (model)
+        {
+            models.append(model);
+        }
+    }
+
+    scene->destroy();
+
+    return models;
+}
+
+void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data,
+                       QHash<GLuint, QVector<QPair<GLuint, GLfloat>>>& resultJointsData /*QHash<index of vertex, QVector<QPair<joint index, joint weight>>>*/,
+                       QList<Note>& notes)
+{
+    if (!skin)
+    {
+        notes.append(Note(Note::Type::Error, QTranslator::tr("Internal error")));
+        qCritical() << Q_FUNC_INFO << "skin is null";
+        return;
+    }
+
+    const int clusterCount = skin->getClusterCount();
+
+    if (clusterCount <= 0)
+    {
+        notes.append(Note(Note::Type::Error, QTranslator::tr("No clusters in skin")));
+        return;
+    }
+
+    int jointIndex = 0;
+
+    QHash<Joint*, const ofbx::Cluster*> clustersByJoints;
+
+    Joint* rootJoint = new Joint("root", jointIndex++, QMatrix4x4());
+
+    clustersByJoints.insert(rootJoint, nullptr);
+    data.skeleton.jointsResultMatrices.append(QMatrix4x4());
+    data.skeleton.joints.append(rootJoint);
+    data.skeleton.jointsByName.insert(rootJoint->getName(), rootJoint);
+    data.skeleton.rootJoint = rootJoint;
+
+    QHash<const ofbx::Object*, Joint*> objectsJoints;
+
+    for (int clusterNum = 0; clusterNum < skin->getClusterCount(); ++clusterNum)
+    {
+        const ofbx::Cluster* cluster = skin->getCluster(clusterNum);
+        if (!cluster)
+        {
+            notes.append(Note(Note::Type::Warning, QTranslator::tr("Internal error")));
+            qWarning() << Q_FUNC_INFO << "cluster is null at index" << clusterNum;
+            continue;
+        }
+
+        const ofbx::Object* object = cluster->getLink();
+        if (!object)
+        {
+            notes.append(Note(Note::Type::Warning, QTranslator::tr("Internal error")));
+            qWarning() << Q_FUNC_INFO << "object/link of cluster is null at index" << clusterNum;
+            continue;
+        }
+
+        Joint* joint = new Joint(object->name, jointIndex++, convertMatrix4x4(cluster->getTransformMatrix()));
+
+        clustersByJoints.insert(joint, cluster);
+        data.skeleton.jointsResultMatrices.append(QMatrix4x4());
+
+        objectsJoints.insert(object, joint);
+        data.skeleton.joints.append(joint);
+
+        const QString name = joint->getName();
+        if (data.skeleton.jointsByName.contains(name))
+        {
+            const QString& newName = name + "_1";
+            qWarning() << Q_FUNC_INFO << "found joint with already exists name. Joint" << name << "renamed to" << newName;
+            data.skeleton.jointsByName.insert(newName, joint);
+        }
+        else
+        {
+            data.skeleton.jointsByName.insert(joint->getName(), joint);
+        }
+    }
+
+    const auto keys = objectsJoints.keys();
+    for (const ofbx::Object* object : qAsConst(keys))
+    {
+        Joint* joint = objectsJoints[object];
+        bool addedToParent = false;
+
+        const ofbx::Object* parent = object->getParent();
+        if (parent)
+        {
+            if (objectsJoints.contains(parent))
+            {
+                Joint* parentJoint = objectsJoints[parent];
+                parentJoint->addChild(joint);
+                addedToParent = true;
+            }
+        }
+
+        if (!addedToParent)
+        {
+            rootJoint->addChild(joint);
+        }
+    }
+
+    for (Joint* joint : qAsConst(data.skeleton.joints))
+    {
+        if (!clustersByJoints.contains(joint))
+        {
+            notes.append(Note(Note::Type::Warning, QTranslator::tr("No cluster for joint \"%1\"").arg(joint->getName())));
+            qWarning() << Q_FUNC_INFO << QString("no cluster for joint \"%1\"").arg(joint->getName());
+            continue;
+        }
+
+        const ofbx::Cluster* cluster = clustersByJoints.value(joint);
+        if (!cluster)
+        {
+            // cluster is null for root
+            continue;
+        }
+
+        const int weightsCount = cluster->getWeightsCount();
+        const int indicesCount = cluster->getIndicesCount();
+
+        if (indicesCount != weightsCount)
+        {
+            notes.append(Note(Note::Type::Warning, QTranslator::tr("Joint indices count and joint weights count do not match for joint \"%1\"").arg(joint->getName())));
+            qWarning() << Q_FUNC_INFO << QString("joint indices count and joint weights count do not match for joint \"%1\"").arg(joint->getName());
+            continue;
+        }
+
+        const double* weights = cluster->getWeights();
+        const int* indices = cluster->getIndices();
+
+        for (int i = 0; i < indicesCount; ++i)
+        {
+            resultJointsData[indices[i]].append(QPair<GLuint, GLfloat>(joint->index, weights[i]));
+        }
+    }
+
+    {
+        const auto keys = resultJointsData.keys();
+        for (const auto& vertexIndex : keys)
+        {
+            std::sort(resultJointsData[vertexIndex].begin(), resultJointsData[vertexIndex].end(), compareJointData);
+        }
+    }
+}
+
+Model *Loader::loadMesh(const ofbx::Mesh *mesh, QList<Note>& notes)
+{
     if (!mesh)
     {
         notes.append(Note(Note::Type::Error, QTranslator::tr("Internal error")));
-        qCritical() << Q_FUNC_INFO << "Mesh is null";
+        qCritical() << Q_FUNC_INFO << "mesh is null";
         return nullptr;
     }
 
@@ -68,7 +219,7 @@ Model *Loader::load(const QString &fileName, QList<Note>& notes)
     if (!geometry)
     {
         notes.append(Note(Note::Type::Error, QTranslator::tr("Internal error")));
-        qCritical() << Q_FUNC_INFO << "Geometry is null";
+        qCritical() << Q_FUNC_INFO << "geometry is null";
         return nullptr;
     }
 
@@ -76,7 +227,7 @@ Model *Loader::load(const QString &fileName, QList<Note>& notes)
     if (!positions)
     {
         notes.append(Note(Note::Type::Error, QTranslator::tr("Internal error")));
-        qCritical() << Q_FUNC_INFO << "Positions is null";
+        qCritical() << Q_FUNC_INFO << "positions is null";
         return nullptr;
     }
 
@@ -84,7 +235,7 @@ Model *Loader::load(const QString &fileName, QList<Note>& notes)
     if (!indices)
     {
         notes.append(Note(Note::Type::Error, QTranslator::tr("Internal error")));
-        qCritical() << Q_FUNC_INFO << "Indices is null";
+        qCritical() << Q_FUNC_INFO << "indices is null";
         return nullptr;
     }
 
@@ -92,11 +243,9 @@ Model *Loader::load(const QString &fileName, QList<Note>& notes)
     if (!normals)
     {
         notes.append(Note(Note::Type::Error, QTranslator::tr("Internal error")));
-        qCritical() << Q_FUNC_INFO << "Normals is null";
+        qCritical() << Q_FUNC_INFO << "normals is null";
         return nullptr;
     }
-
-    const ofbx::Vec2* texcoord = geometry->getUVs();
 
     ModelData* data = new ModelData();
 
@@ -115,6 +264,7 @@ Model *Loader::load(const QString &fileName, QList<Note>& notes)
     addVertexAttributeGLfloat(*data, "a_position", 3);
     addVertexAttributeGLfloat(*data, "a_normal", 3);
 
+    const ofbx::Vec2* texcoord = geometry->getUVs();
     if (texcoord)
     {
         addVertexAttributeGLfloat(*data, "a_texcoord", 2);
@@ -197,7 +347,7 @@ Model *Loader::load(const QString &fileName, QList<Note>& notes)
     if (foundTooMuchJoints)
     {
         notes.append(Note(Note::Type::Warning, QTranslator::tr("More than 4 joints not supported. Extra joints will be ignored")));
-        qWarning() << Q_FUNC_INFO << "More than 4 joints not supported. Extra joints will be ignored";
+        qWarning() << Q_FUNC_INFO << "more than 4 joints not supported. Extra joints will be ignored";
     }
 
     data->indexCount = geometry->getIndexCount();
@@ -232,154 +382,11 @@ Model *Loader::load(const QString &fileName, QList<Note>& notes)
         qWarning() << Q_FUNC_INFO << "rawIndex less than zero but i == 0";
     }
 
-    scene->destroy();
-
     data->skeleton.update();
 
     ModelDataStorage::data.append(data);
 
-    Model* model = new Model(*data);
-
-    return model;
-}
-
-void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data,
-                       QHash<GLuint, QVector<QPair<GLuint, GLfloat>>>& resultJointsData /*QHash<index of vertex, QVector<QPair<joint index, joint weight>>>*/,
-                       QList<Note>& notes)
-{
-    if (!skin)
-    {
-        notes.append(Note(Note::Type::Error, QTranslator::tr("Internal error")));
-        qCritical() << Q_FUNC_INFO << "Skin is null";
-        return;
-    }
-
-    const int clusterCount = skin->getClusterCount();
-
-    if (clusterCount <= 0)
-    {
-        notes.append(Note(Note::Type::Error, QTranslator::tr("No clusters in skin")));
-        return;
-    }
-
-    int jointIndex = 0;
-
-    QHash<Joint*, const ofbx::Cluster*> clustersByJoints;
-
-    Joint* rootJoint = new Joint("root", jointIndex++, QMatrix4x4());
-
-    clustersByJoints.insert(rootJoint, nullptr);
-    data.skeleton.jointsResultMatrices.append(QMatrix4x4());
-    data.skeleton.joints.append(rootJoint);
-    data.skeleton.jointsByName.insert(rootJoint->getName(), rootJoint);
-    data.skeleton.rootJoint = rootJoint;
-
-    QHash<const ofbx::Object*, Joint*> objectsJoints;
-
-    for (int clusterNum = 0; clusterNum < skin->getClusterCount(); ++clusterNum)
-    {
-        const ofbx::Cluster* cluster = skin->getCluster(clusterNum);
-        if (!cluster)
-        {
-            notes.append(Note(Note::Type::Warning, QTranslator::tr("Internal error")));
-            qWarning() << Q_FUNC_INFO << "Cluster is null at index" << clusterNum;
-            continue;
-        }
-
-        const ofbx::Object* object = cluster->getLink();
-        if (!object)
-        {
-            notes.append(Note(Note::Type::Warning, QTranslator::tr("Internal error")));
-            qWarning() << Q_FUNC_INFO << "Object/Link of cluster is null at index" << clusterNum;
-            continue;
-        }
-
-        Joint* joint = new Joint(object->name, jointIndex++, convertMatrix4x4(cluster->getTransformMatrix()));
-
-        clustersByJoints.insert(joint, cluster);
-        data.skeleton.jointsResultMatrices.append(QMatrix4x4());
-
-        objectsJoints.insert(object, joint);
-        data.skeleton.joints.append(joint);
-
-        const QString name = joint->getName();
-        if (data.skeleton.jointsByName.contains(name))
-        {
-            const QString& newName = name + "_1";
-            qWarning() << Q_FUNC_INFO << "found joint with already exists name. Joint" << name << "renamed to" << newName;
-            data.skeleton.jointsByName.insert(newName, joint);
-        }
-        else
-        {
-            data.skeleton.jointsByName.insert(joint->getName(), joint);
-        }
-    }
-
-    const auto keys = objectsJoints.keys();
-    for (const ofbx::Object* object : qAsConst(keys))
-    {
-        Joint* joint = objectsJoints[object];
-        bool addedToParent = false;
-
-        const ofbx::Object* parent = object->getParent();
-        if (parent)
-        {
-            if (objectsJoints.contains(parent))
-            {
-                Joint* parentJoint = objectsJoints[parent];
-                parentJoint->addChild(joint);
-                addedToParent = true;
-            }
-        }
-
-        if (!addedToParent)
-        {
-            rootJoint->addChild(joint);
-        }
-    }
-
-    for (Joint* joint : qAsConst(data.skeleton.joints))
-    {
-        if (!clustersByJoints.contains(joint))
-        {
-            notes.append(Note(Note::Type::Warning, QTranslator::tr("No cluster for joint \"%1\"").arg(joint->getName())));
-            qWarning() << Q_FUNC_INFO << QString("No cluster for joint \"%1\"").arg(joint->getName());
-            continue;
-        }
-
-        const ofbx::Cluster* cluster = clustersByJoints.value(joint);
-        if (!cluster)
-        {
-            // cluster is null for root
-            continue;
-        }
-
-        const int weightsCount = cluster->getWeightsCount();
-        const int indicesCount = cluster->getIndicesCount();
-
-        if (indicesCount != weightsCount)
-        {
-            notes.append(Note(Note::Type::Warning, QTranslator::tr("Joint indices count and joint weights count do not match for joint \"%1\"").arg(joint->getName())));
-            qWarning() << Q_FUNC_INFO << QString("Joint indices count and joint weights count do not match for joint \"%1\"").arg(joint->getName());
-            continue;
-        }
-
-        const double* weights = cluster->getWeights();
-        const int* indices = cluster->getIndices();
-
-        for (int i = 0; i < indicesCount; ++i)
-        {
-            resultJointsData[indices[i]].append(QPair<GLuint, GLfloat>(joint->index, weights[i]));
-        }
-    }
-
-    {
-        const auto keys = resultJointsData.keys();
-        for (const auto& vertexIndex : keys)
-        {
-            std::sort(resultJointsData[vertexIndex].begin(), resultJointsData[vertexIndex].end(), compareJointData);
-        }
-    }
+    return new Model(*data);
 }
 
 void Loader::addVertexAttributeGLfloat(ModelData& modelData, const QString &nameForShader, const int tupleSize)

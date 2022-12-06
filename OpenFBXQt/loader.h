@@ -36,7 +36,7 @@ private:
 class Loader
 {
 public:
-    static Model *load(const QString& fileName, QList<Note>& notes);
+    static QList<Model*> load(const QString& fileName, QList<Note>& notes);
 
 private:
     Loader(){}
@@ -44,6 +44,8 @@ private:
     static void loadJoints(const ofbx::Skin* skin, ModelData& data,
                            QHash<GLuint, QVector<QPair<GLuint, GLfloat>>>& resultJointsData /*QHash<index of vertex, QVector<QPair<joint index, joint weight>>>*/,
                            QList<Note>& notes);
+
+    static Model* loadMesh(const ofbx::Mesh* mesh, QList<Note>& notes);
 
     static void addVertexAttributeGLfloat(ModelData& modelData, const QString& nameForShader, const int tupleSize);
 
