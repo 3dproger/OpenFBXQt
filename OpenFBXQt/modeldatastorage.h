@@ -15,6 +15,8 @@ class Loader;
 
 struct Material
 {
+    virtual ~Material(){}
+
     enum class Type { Color, Image };
     Type type = Type::Color;
 
@@ -26,6 +28,15 @@ struct TextureMaterial : public Material
     TextureMaterial(const QString& imageFileName_)
         : imageFileName(imageFileName_)
     {}
+
+    virtual ~TextureMaterial() override
+    {
+        if (texture)
+        {
+            delete texture;
+            texture = nullptr;
+        }
+    }
 
     virtual void init() override
     {
@@ -75,6 +86,15 @@ struct ModelData
     mutable QOpenGLShaderProgram shader;
 
     Skeleton skeleton;
+
+    ~ModelData()
+    {
+        if (material)
+        {
+            delete material;
+            material = nullptr;
+        }
+    }
 };
 
 class ModelDataStorage

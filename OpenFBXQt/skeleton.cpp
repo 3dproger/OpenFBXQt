@@ -27,9 +27,19 @@ void Skeleton::update()
     update(rootJoint);
 }
 
-const QVector<QMatrix4x4> &Skeleton::getJointsResultMatrices() const
+const QVector<Joint*> &Skeleton::getJoints() const
 {
-    return jointsResultMatrices;
+    return joints;
+}
+
+Joint *Skeleton::getRootJoint()
+{
+    return rootJoint;
+}
+
+Joint *Skeleton::getJointByName(const QString &name)
+{
+    return jointsByName.value(name);
 }
 
 void Skeleton::update(Joint *joint, const QMatrix4x4 &parentMatrix)
@@ -40,7 +50,7 @@ void Skeleton::update(Joint *joint, const QMatrix4x4 &parentMatrix)
         return;
     }
 
-    const QMatrix4x4 matrix = parentMatrix * joint->inverseBindMatrix.inverted() * joint->localTransofrmation * joint->inverseBindMatrix;
+    const QMatrix4x4 matrix = parentMatrix * joint->inverseBindMatrix.inverted() * joint->localTransformation * joint->inverseBindMatrix;
 
     jointsResultMatrices[joint->index] = matrix;
 

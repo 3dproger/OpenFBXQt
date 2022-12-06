@@ -17,11 +17,11 @@ public:
     friend class Model;
     friend class Skeleton;
 
-    Joint(const QString& name, const GLuint index, const QMatrix4x4& inverseBindMatrix);
-
     const QString& getName() const { return name; }
+    void setRotation(const QQuaternion& rotation);
 
 private:
+    Joint(const QString& name, const GLuint index, const QMatrix4x4& inverseBindMatrix);
     void addChild(Joint* joint);
 
     QString name;
@@ -29,8 +29,9 @@ private:
     QMatrix4x4 inverseBindMatrix;
 
     QQuaternion rotation;
-    QMatrix4x4 localTransofrmation;
+    QMatrix4x4 localTransformation;
 
+    Joint* parent = nullptr;
     QHash<QString, Joint*> children;
 };
 

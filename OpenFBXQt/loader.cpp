@@ -120,7 +120,7 @@ Model *Loader::load(const QString &fileName, QList<Note>& notes)
         addVertexAttributeGLfloat(*data, "a_texcoord", 2);
     }
 
-    if (data->skeleton.getJointsResultMatrices().count() > 0)
+    if (data->skeleton.getJoints().count() > 0)
     {
         addVertexAttributeGLfloat(*data, "a_joint_weights", 4);
         addVertexAttributeGLfloat(*data, "a_joint_indices", 4);
@@ -149,7 +149,7 @@ Model *Loader::load(const QString &fileName, QList<Note>& notes)
             rawVertexArray[idx++] = (GLfloat)texcoord[vertexIndex].y;
         }
 
-        if (data->skeleton.getJointsResultMatrices().count() > 0)
+        if (data->skeleton.getJoints().count() > 0)
         {
             if (jointsData.contains(vertexIndex))
             {

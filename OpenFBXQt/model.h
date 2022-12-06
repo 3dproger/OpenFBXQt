@@ -13,6 +13,8 @@ class Loader;
 class Model : protected QOpenGLFunctions
 {
 public:
+    Skeleton skeleton;
+
     friend class Loader;
 
     Model(ModelData& data);
@@ -30,7 +32,6 @@ private:
     QMatrix4x4 matrix;
 
     bool needUpdateSkeleton = false;
-    Skeleton skeleton;
 };
 
 }

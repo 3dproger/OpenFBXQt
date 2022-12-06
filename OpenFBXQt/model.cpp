@@ -29,15 +29,14 @@ void Model::initializeGL()
     if (!data.shader.isLinked())
     {
         QString vshaderFileName;
-        /*if (fbx->joints.count() > 0)
+        if (data.skeleton.getJoints().count() > 0)
         {
             vshaderFileName = ":/OpenFBXQt-shaders/vshader-with-joins.glsl";
         }
         else
         {
             vshaderFileName = ":/OpenFBXQt-shaders/vshader-no-joints.glsl";
-        }*/
-        vshaderFileName = ":/OpenFBXQt-shaders/vshader-no-joints.glsl";
+        }
 
         QString fshaderFileName;
         switch (getMaterial().type)
@@ -207,7 +206,7 @@ void Model::paintGL(const QMatrix4x4 &projection)
         needUpdateSkeleton = false;
     }
 
-    const QVector<QMatrix4x4>& matrices = skeleton.getJointsResultMatrices();
+    const QVector<QMatrix4x4>& matrices = skeleton.jointsResultMatrices;
     if (matrices.count() > 0)
     {
         data.shader.setUniformValueArray("joints", matrices.data(), matrices.count());

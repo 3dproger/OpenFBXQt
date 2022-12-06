@@ -43,6 +43,18 @@ void Scene::paintGL()
 
     for (Model* model : qAsConst(models))
     {
+        {
+            Joint* j = model->skeleton.getJointByName("Bone.Forefinger.002");
+            j->setRotation(QQuaternion::fromAxisAndAngle(QVector3D(0, 0, 1).normalized(), 45));
+        }
+
+        {
+            Joint* j = model->skeleton.getJointByName("Bone.Forefinger.003");
+            j->setRotation(QQuaternion::fromAxisAndAngle(QVector3D(0, 0, 1).normalized(), 45));
+        }
+
+        model->skeleton.update();
+
         model->paintGL(perspective * projection);
     }
 }
