@@ -196,8 +196,8 @@ Model *Loader::load(const QString &fileName, QList<Note>& notes)
 
     if (foundTooMuchJoints)
     {
-        notes.append(Note(Note::Type::Warning, QTranslator::tr("Too many joints found. Extra joints will be ignored")));
-        qWarning() << Q_FUNC_INFO << "Too many joints found. Extra joints will be ignored";
+        notes.append(Note(Note::Type::Warning, QTranslator::tr("More than 4 joints not supported. Extra joints will be ignored")));
+        qWarning() << Q_FUNC_INFO << "More than 4 joints not supported. Extra joints will be ignored";
     }
 
     data->indexCount = geometry->getIndexCount();

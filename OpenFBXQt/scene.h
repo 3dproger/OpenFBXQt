@@ -27,8 +27,11 @@ public:
     void paintGL();
 
 private:
-
     bool initializedGL = false;
+
+    const qreal nearDistance = 0.1;
+    const qreal farDistance = 10000.0;
+    const qreal viewingAngle = 60.0;
 
     qreal maxFps = 60;
 

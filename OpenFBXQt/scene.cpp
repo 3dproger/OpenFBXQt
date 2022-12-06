@@ -6,7 +6,7 @@ namespace ofbxqt
 
 Scene::Scene()
 {
-
+    resizeGL(100, 100);
 }
 
 Scene::~Scene()
@@ -49,15 +49,11 @@ void Scene::paintGL()
 
 void Scene::resizeGL(int width, int height)
 {
-    const qreal zNear = 0.1;
-    const qreal zFar = 10000.0;
-    const qreal viewingAngle = 60.0;
-
     const qreal aspect = qreal(width) / qreal(height ? height : 1);
 
     perspective = QMatrix4x4();
     perspective.setToIdentity();
-    perspective.perspective(viewingAngle, aspect, zNear, zFar);
+    perspective.perspective(viewingAngle, aspect, nearDistance, farDistance);
 }
 
 void Scene::setProjection(const QMatrix4x4 &matrix)

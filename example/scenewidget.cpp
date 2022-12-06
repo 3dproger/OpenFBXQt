@@ -15,6 +15,8 @@ void SceneWidget::mousePressEvent(QMouseEvent *event)
         return;
     }
 
+    setCursor(Qt::ClosedHandCursor);
+
     prevMousePos = event->globalPos();
 }
 
@@ -25,6 +27,8 @@ void SceneWidget::mouseReleaseEvent(QMouseEvent *event)
         qCritical() << Q_FUNC_INFO << "event is null";
         return;
     }
+
+    setCursor(Qt::ArrowCursor);
 }
 
 void SceneWidget::mouseMoveEvent(QMouseEvent *event)
