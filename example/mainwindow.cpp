@@ -59,6 +59,20 @@ void MainWindow::on_actionOpen_triggered()
         return;
     }
 
+    // ============= TEST ==================
+    if (ofbxqt::Joint* j = model->skeleton.getJointByName("Bone.Forefinger.002"); j)
+    {
+        j->setRotation(QQuaternion::fromAxisAndAngle(QVector3D(0, 0, 1).normalized(), -30));
+    }
+
+    if (ofbxqt::Joint* j = model->skeleton.getJointByName("Bone.Forefinger.003"); j)
+    {
+        j->setRotation(QQuaternion::fromAxisAndAngle(QVector3D(0, 0, 1).normalized(), -45));
+    }
+    // ============= TEST ==================
+
+    model->skeleton.update();
+
     ui->sceneWidget->scene.addModel(model);
 }
 
