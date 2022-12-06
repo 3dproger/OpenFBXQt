@@ -26,3 +26,19 @@ FORMS += \
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+win32: {
+    CONFIG(debug, debug|release) {
+        #debug
+    } else {
+        #release
+        contains(QT_ARCH, i386) {
+            DESTDIR = $$_PRO_FILE_PWD_/../release_win32
+        } else {
+            DESTDIR = $$_PRO_FILE_PWD_/../release_win64
+        }
+
+        #QMAKE_POST_LINK += $$(QTDIR)/bin/windeployqt --release --qmldir $$(QTDIR)/qml $$DESTDIR $$escape_expand(\\n\\t) # In Qt 5.15 with --release not working
+        QMAKE_POST_LINK += $$(QTDIR)/bin/windeployqt --qmldir $$(QTDIR)/qml $$DESTDIR $$escape_expand(\\n\\t)
+    }
+}
