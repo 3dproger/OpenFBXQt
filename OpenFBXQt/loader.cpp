@@ -280,6 +280,7 @@ Model *Loader::loadMesh(const ofbx::Mesh *mesh, QList<Note>& notes)
     data->vertexCount = geometry->getVertexCount();
     data->vertexData.resize(data->vertexCount * data->vertexStride);
 
+    static const int MaxJointsForVertex = 4;
     bool foundTooMuchJoints = false;
 
     GLfloat* rawVertexArray = reinterpret_cast<GLfloat*>(data->vertexData.data());
@@ -305,27 +306,27 @@ Model *Loader::loadMesh(const ofbx::Mesh *mesh, QList<Note>& notes)
             if (jointsData.contains(vertexIndex))
             {
                 const int jointCountForVertex = jointsData[vertexIndex].count();
-                if (jointCountForVertex > 4)
+                if (jointCountForVertex > MaxJointsForVertex)
                 {
                     foundTooMuchJoints = true;
                 }
 
-                for (int jointNum = 0; jointNum < qMin(jointCountForVertex, 4); ++jointNum)
+                for (int jointNum = 0; jointNum < qMin(jointCountForVertex, MaxJointsForVertex); ++jointNum)
                 {
                     rawVertexArray[idx++] = (GLfloat)jointsData[vertexIndex][jointNum].second;
                 }
 
-                for (int jointNum = jointCountForVertex; jointNum < 4; ++jointNum)
+                for (int jointNum = jointCountForVertex; jointNum < MaxJointsForVertex; ++jointNum)
                 {
                     rawVertexArray[idx++] = (GLfloat)0.0;
                 }
 
-                for (int jointNum = 0; jointNum < qMin(jointCountForVertex, 4); ++jointNum)
+                for (int jointNum = 0; jointNum < qMin(jointCountForVertex, MaxJointsForVertex); ++jointNum)
                 {
                     rawVertexArray[idx++] = (GLfloat)jointsData[vertexIndex][jointNum].first;
                 }
 
-                for (int jointNum = jointCountForVertex; jointNum < 4; ++jointNum)
+                for (int jointNum = jointCountForVertex; jointNum < MaxJointsForVertex; ++jointNum)
                 {
                     rawVertexArray[idx++] = (GLfloat)-1;
                 }
@@ -347,8 +348,8 @@ Model *Loader::loadMesh(const ofbx::Mesh *mesh, QList<Note>& notes)
 
     if (foundTooMuchJoints)
     {
-        notes.append(Note(Note::Type::Warning, QTranslator::tr("More than 4 joints not supported. Extra joints will be ignored")));
-        qWarning() << Q_FUNC_INFO << "more than 4 joints not supported. Extra joints will be ignored";
+        notes.append(Note(Note::Type::Warning, QTranslator::tr("More than %1 joints not supported. Extra joints will be ignored").arg(MaxJointsForVertex)));
+        qWarning() << Q_FUNC_INFO << "more than" << MaxJointsForVertex << "joints not supported. Extra joints will be ignored";
     }
 
     data->indexCount = geometry->getIndexCount();
@@ -390,13 +391,13 @@ Model *Loader::loadMesh(const ofbx::Mesh *mesh, QList<Note>& notes)
     return new Model(*data);
 }
 
-void Loader::addVertexAttributeGLfloat(ModelData& modelData, const QString &nameForShader, const int tupleSize)
+void Loader::addVertexAttributeGLfloat(ModelData& data, const QString &nameForShader, const int tupleSize)
 {
     int offset = 0;
 
-    if (!modelData.vertexAttributes.isEmpty())
+    if (!data.vertexAttributes.isEmpty())
     {
-        const VertexAttributeInfo& last = modelData.vertexAttributes.last();
+        const VertexAttributeInfo& last = data.vertexAttributes.last();
         offset = last.offset + last.tupleSize * sizeof(GLfloat);
     }
 
@@ -407,9 +408,9 @@ void Loader::addVertexAttributeGLfloat(ModelData& modelData, const QString &name
     attribute.tupleSize = tupleSize;
     attribute.offset = offset;
 
-    modelData.vertexStride += tupleSize * sizeof(GLfloat);
+    data.vertexStride += tupleSize * sizeof(GLfloat);
 
-    modelData.vertexAttributes.append(attribute);
+    data.vertexAttributes.append(attribute);
 }
 
 }

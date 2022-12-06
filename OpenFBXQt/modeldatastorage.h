@@ -81,6 +81,8 @@ struct VertexAttributeInfo
 
 struct ModelData
 {
+    QString fileName;
+
     QMatrix4x4 sourceMatrix;
 
     const GLenum drawElementsMode = GL_TRIANGLES;

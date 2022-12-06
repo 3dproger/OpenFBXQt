@@ -21,11 +21,13 @@ public:
     ~Model();
 
     void initializeGL();
-    void paintGL(const QMatrix4x4& projectionMatrix);
+    void paintGL(const QMatrix4x4& projection);
 
     void setMaterial(Material* material);
 
 private:
+    TextureMaterial* findTexture(const QString& fileName);
+
     bool initializedGL = false;
 
     Material* material = nullptr;

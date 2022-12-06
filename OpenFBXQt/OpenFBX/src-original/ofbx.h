@@ -1,20 +1,15 @@
 #pragma once
 
+#include <stdint.h>
 
 namespace ofbx
 {
 
-
-typedef unsigned char u8;
-typedef unsigned short u16;
-typedef unsigned int u32;
-#if defined(_WIN32) || defined(ANDROID)
-	typedef long long i64;
-	typedef unsigned long long u64;
-#else
-    typedef long i64;
-    typedef unsigned long u64;
-#endif
+typedef uint8_t u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
+typedef uint64_t u64;
+typedef int64_t i64;
 
 static_assert(sizeof(u8) == 1, "u8 is not 1 byte");
 static_assert(sizeof(u32) == 4, "u32 is not 4 bytes");
@@ -455,14 +450,6 @@ enum UpVector
 };
 
 
-// Vector with origin at the screen pointing toward the camera.
-enum FrontVector
-{
-	FrontVector_ParityEven = 0,
-	FrontVector_ParityOdd = 1
-};
-
-
 // Specifies the third vector of the system.
 enum CoordSystem
 {
@@ -496,7 +483,9 @@ struct GlobalSettings
 {
 	UpVector UpAxis = UpVector_AxisX;
 	int UpAxisSign = 1;
-	FrontVector FrontAxis = FrontVector_ParityOdd;
+	// this seems to be 1-2 in Autodesk (odd/even parity), and 0-2 in Blender (axis as in UpAxis)
+	// I recommend to ignore FrontAxis and use just UpVector
+	int FrontAxis = 1; 
 	int FrontAxisSign = 1;
 	CoordSystem CoordAxis = CoordSystem_RightHanded;
 	int CoordAxisSign = 1;

@@ -87,6 +87,7 @@ void Model::initializeGL()
 
     initializeOpenGLFunctions();
 
+    material = findTexture(data.fileName);
     if (!material)
     {
         if (!spareColors.isEmpty())
@@ -349,6 +350,11 @@ void Model::setMaterial(Material *material_)
     }
 
     material = material_;
+}
+
+TextureMaterial *Model::findTexture(const QString &fileName)
+{
+    return nullptr;
 }
 
 }
