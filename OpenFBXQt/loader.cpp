@@ -97,12 +97,6 @@ Model *Loader::load(const QString &fileName, QList<Note>& notes)
     }
 
     const ofbx::Vec2* texcoord = geometry->getUVs();
-    if (!texcoord)
-    {
-        notes.append(Note(Note::Type::Error, QTranslator::tr("Internal error")));
-        qCritical() << Q_FUNC_INFO << "Texture coordinates is null";
-        return nullptr;
-    }
 
     ModelData* data = new ModelData();
 
@@ -120,7 +114,11 @@ Model *Loader::load(const QString &fileName, QList<Note>& notes)
 
     addVertexAttributeGLfloat(*data, "a_position", 3);
     addVertexAttributeGLfloat(*data, "a_normal", 3);
-    addVertexAttributeGLfloat(*data, "a_texcoord", 2);
+
+    if (texcoord)
+    {
+        addVertexAttributeGLfloat(*data, "a_texcoord", 2);
+    }
 
     if (data->skeleton.getJointsResultMatrices().count() > 0)
     {
@@ -145,8 +143,11 @@ Model *Loader::load(const QString &fileName, QList<Note>& notes)
         rawVertexArray[idx++] = (GLfloat)normals[vertexIndex].y;
         rawVertexArray[idx++] = (GLfloat)normals[vertexIndex].z;
 
-        rawVertexArray[idx++] = (GLfloat)texcoord[vertexIndex].x;
-        rawVertexArray[idx++] = (GLfloat)texcoord[vertexIndex].y;
+        if (texcoord)
+        {
+            rawVertexArray[idx++] = (GLfloat)texcoord[vertexIndex].x;
+            rawVertexArray[idx++] = (GLfloat)texcoord[vertexIndex].y;
+        }
 
         if (data->skeleton.getJointsResultMatrices().count() > 0)
         {
