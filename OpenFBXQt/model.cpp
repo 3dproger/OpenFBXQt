@@ -4,8 +4,8 @@ namespace ofbxqt
 {
 
 Model::Model(ModelData& data_)
-    : data(data_)
-    , skeleton(data_.skeleton)
+    : skeleton(data_.skeleton)
+    , data(data_)
 {
 
 }
@@ -149,7 +149,7 @@ void Model::paintGL(const QMatrix4x4 &projection)
     if (!data.shader.isLinked())
     {
 #ifdef QT_DEBUG
-        qCritical() << Q_FUNC_INFO << "Shader not linked";
+        qCritical() << Q_FUNC_INFO << "shader not linked";
 #endif
         return;
     }
@@ -170,7 +170,7 @@ void Model::paintGL(const QMatrix4x4 &projection)
         else
         {
 #ifdef QT_DEBUG
-            qCritical() << Q_FUNC_INFO << "Texture is null";
+            qCritical() << Q_FUNC_INFO << "texture is null";
 #endif
         }
         break;
