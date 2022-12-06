@@ -68,10 +68,10 @@ struct ModelData
 
     QMatrix4x4 sourceMatrix;
 
-    GLenum drawElementsMode = GL_TRIANGLES;
+    const GLenum drawElementsMode = GL_TRIANGLES;
 
-    GLenum indexType = GL_UNSIGNED_INT;
-    int indexStride = (1) * sizeof(GLuint);
+    const GLenum indexType = GL_UNSIGNED_INT;
+    const int indexStride = (1) * sizeof(GLuint);
     int indexCount = 0;
     mutable QByteArray indexData;
 

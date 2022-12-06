@@ -301,7 +301,18 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data,
 
         objectsJoints.insert(object, joint);
         data.skeleton.joints.append(joint);
-        data.skeleton.jointsByName.insert(joint->getName(), joint);
+
+        const QString name = joint->getName();
+        if (data.skeleton.jointsByName.contains(name))
+        {
+            const QString& newName = name + "_1";
+            qWarning() << Q_FUNC_INFO << "found joint with already exists name. Joint" << name << "renamed to" << newName;
+            data.skeleton.jointsByName.insert(newName, joint);
+        }
+        else
+        {
+            data.skeleton.jointsByName.insert(joint->getName(), joint);
+        }
     }
 
     const auto keys = objectsJoints.keys();
