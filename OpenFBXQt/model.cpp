@@ -26,50 +26,6 @@ void Model::initializeGL()
 
     initializeOpenGLFunctions();
 
-    if (!data.shader.isLinked())
-    {
-        QString vshaderFileName;
-        if (data.skeleton.getJoints().count() > 0)
-        {
-            vshaderFileName = ":/OpenFBXQt-shaders/vshader-with-joins.glsl";
-        }
-        else
-        {
-            vshaderFileName = ":/OpenFBXQt-shaders/vshader-no-joints.glsl";
-        }
-
-        QString fshaderFileName;
-        switch (getMaterial().type)
-        {
-        case Material::Type::Image:
-            fshaderFileName = ":/OpenFBXQt-shaders/fshader-textured.glsl";
-            break;
-        case Material::Type::Color:
-            fshaderFileName = ":/OpenFBXQt-shaders/fshader-colored.glsl";
-            break;
-        }
-
-        if (!data.shader.addShaderFromSourceFile(QOpenGLShader::Vertex, vshaderFileName))
-        {
-            qWarning() << Q_FUNC_INFO << "failed to compile vertex shader";
-        }
-
-        if (!data.shader.addShaderFromSourceFile(QOpenGLShader::Fragment, fshaderFileName))
-        {
-            qWarning() << Q_FUNC_INFO << "failed to compile fragment shader";
-        }
-
-        if (!data.shader.link())
-        {
-            qWarning() << Q_FUNC_INFO << "failed to link shader";
-        }
-
-        if (!data.shader.bind())
-        {
-            qWarning() << Q_FUNC_INFO << "failed to bind shader";
-        }
-    }
-
     if (!data.vertexBuffer.isCreated())
     {
         if (!data.vertexBuffer.create())
@@ -147,6 +103,45 @@ void Model::initializeGL()
 
         data.indexData.clear();
     }
+
+    if (!data.shader.isLinked())
+    {
+        QString vshaderFileName;
+        if (data.skeleton.getJoints().count() > 0)
+        {
+            vshaderFileName = ":/OpenFBXQt-shaders/vshader-with-joins.glsl";
+        }
+        else
+        {
+            vshaderFileName = ":/OpenFBXQt-shaders/vshader-no-joints.glsl";
+        }
+
+        QString fshaderFileName;
+        switch (getMaterial().type)
+        {
+        case Material::Type::Image:
+            fshaderFileName = ":/OpenFBXQt-shaders/fshader-textured.glsl";
+            break;
+        case Material::Type::Color:
+            fshaderFileName = ":/OpenFBXQt-shaders/fshader-colored.glsl";
+            break;
+        }
+
+        if (!data.shader.addShaderFromSourceFile(QOpenGLShader::Vertex, vshaderFileName))
+        {
+            qWarning() << Q_FUNC_INFO << "failed to compile vertex shader";
+        }
+
+        if (!data.shader.addShaderFromSourceFile(QOpenGLShader::Fragment, fshaderFileName))
+        {
+            qWarning() << Q_FUNC_INFO << "failed to compile fragment shader";
+        }
+
+        if (!data.shader.link())
+        {
+            qWarning() << Q_FUNC_INFO << "failed to link shader";
+        }
+    }
 }
 
 void Model::paintGL(const QMatrix4x4 &projection)
@@ -184,7 +179,12 @@ void Model::paintGL(const QMatrix4x4 &projection)
         break;
     }
 
-    data.shader.bind();
+    if (!data.shader.bind())
+    {
+#ifdef QT_DEBUG
+        qCritical() << Q_FUNC_INFO << "failed to bind shader";
+#endif
+    }
 
     QVector3D v(0, 0, 0);
     v = v.unproject(matrix * data.sourceMatrix, projection, QRect(0, 0, 1, 1));
