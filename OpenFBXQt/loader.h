@@ -36,7 +36,7 @@ private:
 class Loader
 {
 public:
-    static QList<Model*> load(const QString& fileName, QList<Note>& notes);
+    static QList<Model*> open(const QString& fileName, QList<Note>& notes);
 
 private:
     Loader(){}

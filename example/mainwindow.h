@@ -20,6 +20,8 @@ private slots:
     void on_actionExit_triggered();
 
 private:
+    void open(const QString& fileName);
+
     Ui::MainWindow *ui;
 };
 #endif // MAINWINDOW_H

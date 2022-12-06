@@ -1,6 +1,7 @@
 #pragma once
 
 #include "model.h"
+#include "loader.h"
 #include <QOpenGLFunctions>
 #include <QColor>
 
@@ -22,11 +23,13 @@ public:
     void setProjection(const QMatrix4x4& matrix);
     QMatrix4x4 getProjection() const;
 
-    void addModel(Model* model);
+    QList<Model*> open(const QString& fileName, QList<ofbxqt::Note>& notes);
 
     void paintGL();
 
 private:
+    void addModel(Model* model);
+
     bool initializedGL = false;
 
     const qreal nearDistance = 0.1;

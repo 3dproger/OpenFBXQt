@@ -24,7 +24,7 @@ struct Material
 
     Type type = Type::Color;
 
-    virtual void init() = 0;
+    virtual void initializeGL() = 0;
 };
 
 struct TextureMaterial : public Material
@@ -43,7 +43,7 @@ struct TextureMaterial : public Material
         }
     }
 
-    virtual void init() override
+    virtual void initializeGL() override
     {
         const QImage image(imageFileName);
         if (image.isNull())
@@ -66,7 +66,7 @@ struct ColorMaterial : public Material
         , color(color_)
     {}
 
-    virtual void init() override {}
+    virtual void initializeGL() override {}
 
     QColor color;
 };

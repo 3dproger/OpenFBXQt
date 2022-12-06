@@ -10,6 +10,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    open("D:/Projects/openfbxqt/build-OpenFBXQtViewer-Desktop_Qt_5_15_2_MinGW_32_bit-Debug/glove1.fbx");
 }
 
 MainWindow::~MainWindow()
@@ -25,8 +26,18 @@ void MainWindow::on_actionOpen_triggered()
         return;
     }
 
+    open(fileName);
+}
+
+void MainWindow::on_actionExit_triggered()
+{
+    qApp->quit();
+}
+
+void MainWindow::open(const QString &fileName)
+{
     QList<ofbxqt::Note> notes;
-    const QList<ofbxqt::Model*> models = ofbxqt::Loader::load(fileName, notes);
+    const QList<ofbxqt::Model*> models = ui->sceneWidget->scene.open(fileName, notes);
 
     QString errorText = tr("File not loaded");
 
@@ -59,33 +70,22 @@ void MainWindow::on_actionOpen_triggered()
     if (foundError || models.isEmpty())
     {
         QMessageBox::critical(this, QString(), errorText);
-        return;
     }
-
-    // ============= TEST ==================
-    if (ofbxqt::Joint* j = models[0]->skeleton.getJointByName("Bone.Forefinger.002"); j)
+    else
     {
-        j->setRotation(QQuaternion::fromAxisAndAngle(QVector3D(0, 0, 1).normalized(), -30));
+        // ============= TEST ==================
+        if (ofbxqt::Joint* j = models[0]->skeleton.getJointByName("Bone.Forefinger.002"); j)
+        {
+            j->setRotation(QQuaternion::fromAxisAndAngle(QVector3D(0, 0, 1).normalized(), -30));
+        }
+
+        if (ofbxqt::Joint* j = models[0]->skeleton.getJointByName("Bone.Forefinger.003"); j)
+        {
+            j->setRotation(QQuaternion::fromAxisAndAngle(QVector3D(0, 0, 1).normalized(), -45));
+        }
+
+        models[0]->skeleton.update();
+        // ============= TEST ==================
     }
-
-    if (ofbxqt::Joint* j = models[0]->skeleton.getJointByName("Bone.Forefinger.003"); j)
-    {
-        j->setRotation(QQuaternion::fromAxisAndAngle(QVector3D(0, 0, 1).normalized(), -45));
-    }
-
-    models[0]->skeleton.update();
-    // ============= TEST ==================
-
-    qDebug() << "Loaded" << models.count() << "models";
-
-    for (ofbxqt::Model* model : models)
-    {
-        ui->sceneWidget->scene.addModel(model);
-    }
-}
-
-void MainWindow::on_actionExit_triggered()
-{
-    qApp->quit();
 }
 

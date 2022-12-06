@@ -84,6 +84,18 @@ void Scene::addModel(Model *model)
     models.append(model);
 }
 
+QList<Model*> Scene::open(const QString &fileName, QList<Note> &notes)
+{
+    QList<Model*> models = Loader::open(fileName, notes);
+
+    for (ofbxqt::Model* model : models)
+    {
+        addModel(model);
+    }
+
+    return models;
+}
+
 void ofbxqt::Scene::setMaxFps(qreal maxFps_)
 {
     maxFps = maxFps_;

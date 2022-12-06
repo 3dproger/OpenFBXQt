@@ -98,7 +98,7 @@ void Model::initializeGL()
             }
 
             ColorMaterial* colorMaterial = new ColorMaterial(spareColors[currentSpareColors]);
-            colorMaterial->init();
+            colorMaterial->initializeGL();
             material = colorMaterial;
 
             currentSpareColors++;

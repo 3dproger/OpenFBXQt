@@ -23,7 +23,7 @@ static bool compareJointData(const QPair<GLuint, GLfloat>& joint1, const QPair<G
     return joint1.second >= joint2.second;
 }
 
-QList<Model*> Loader::load(const QString &fileName, QList<Note>& notes)
+QList<Model*> Loader::open(const QString &fileName, QList<Note>& notes)
 {
     notes = QList<Note>();
 
@@ -46,6 +46,12 @@ QList<Model*> Loader::load(const QString &fileName, QList<Note>& notes)
     }
 
     const int meshCount = scene->getMeshCount();
+    if (meshCount <= 0)
+    {
+        scene->destroy();
+        notes.append(Note(Note::Type::Error, QTranslator::tr("No meshes in scene")));
+        return QList<Model*>();
+    }
 
     QList<Model*> models;
     for (int i = 0; i < meshCount; ++i)
@@ -58,12 +64,6 @@ QList<Model*> Loader::load(const QString &fileName, QList<Note>& notes)
     }
 
     scene->destroy();
-
-    if (meshCount <= 0)
-    {
-        notes.append(Note(Note::Type::Error, QTranslator::tr("No meshes in scene")));
-        return QList<Model*>();
-    }
 
     return models;
 }
@@ -80,7 +80,6 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data,
     }
 
     const int clusterCount = skin->getClusterCount();
-
     if (clusterCount <= 0)
     {
         notes.append(Note(Note::Type::Error, QTranslator::tr("No clusters in skin")));
@@ -130,7 +129,7 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data,
         const QString name = joint->getName();
         if (data.skeleton.jointsByName.contains(name))
         {
-            const QString& newName = name + "_1";
+            const QString newName = name + "_1";
             qWarning() << Q_FUNC_INFO << "found joint with already exists name. Joint" << name << "renamed to" << newName;
             data.skeleton.jointsByName.insert(newName, joint);
         }
