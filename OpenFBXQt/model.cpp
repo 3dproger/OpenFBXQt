@@ -96,15 +96,15 @@ void Model::initializeGL()
                 currentSpareColors = 0;
             }
 
-            ColorMaterial* colorMaterial = new ColorMaterial();
-            colorMaterial->color = spareColors[currentSpareColors];
+            ColorMaterial* colorMaterial = new ColorMaterial(spareColors[currentSpareColors]);
+            colorMaterial->init();
             material = colorMaterial;
 
             currentSpareColors++;
         }
         else
         {
-            material = new ColorMaterial();
+            material = new ColorMaterial(QColor(191, 191, 191));
             qWarning() << Q_FUNC_INFO << "spare colors is empty. Used default material";
         }
     }

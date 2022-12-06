@@ -15,9 +15,13 @@ class Loader;
 
 struct Material
 {
+    enum class Type { Color, Image };
+
+    Material(const Type type_)
+        : type(type_)
+    {}
     virtual ~Material(){}
 
-    enum class Type { Color, Image };
     Type type = Type::Color;
 
     virtual void init() = 0;
@@ -26,7 +30,8 @@ struct Material
 struct TextureMaterial : public Material
 {
     TextureMaterial(const QString& imageFileName_)
-        : imageFileName(imageFileName_)
+        : Material(Type::Image)
+        , imageFileName(imageFileName_)
     {}
 
     virtual ~TextureMaterial() override
@@ -40,7 +45,14 @@ struct TextureMaterial : public Material
 
     virtual void init() override
     {
-        texture = new QOpenGLTexture(QImage(imageFileName).mirrored());
+        const QImage image(imageFileName);
+        if (image.isNull())
+        {
+            qCritical() << Q_FUNC_INFO << "failed to open image" << imageFileName;
+            return;
+        }
+
+        texture = new QOpenGLTexture(image.mirrored());
     }
 
     const QString imageFileName;
@@ -49,9 +61,14 @@ struct TextureMaterial : public Material
 
 struct ColorMaterial : public Material
 {
+    ColorMaterial(const QColor& color_)
+        : Material(Type::Color)
+        , color(color_)
+    {}
+
     virtual void init() override {}
 
-    QColor color = QColor(191, 191, 191);
+    QColor color;
 };
 
 struct VertexAttributeInfo
