@@ -30,6 +30,8 @@ void Scene::initializeGL()
     initializedGL = true;
 
     initializeOpenGLFunctions();
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
 
     for (Model* model : qAsConst(models))
     {
