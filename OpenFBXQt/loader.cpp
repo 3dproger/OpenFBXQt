@@ -46,11 +46,6 @@ QList<Model*> Loader::load(const QString &fileName, QList<Note>& notes)
     }
 
     const int meshCount = scene->getMeshCount();
-    if (meshCount <= 0)
-    {
-        notes.append(Note(Note::Type::Error, QTranslator::tr("No meshes in scene")));
-        return QList<Model*>();
-    }
 
     QList<Model*> models;
     for (int i = 0; i < meshCount; ++i)
@@ -63,6 +58,12 @@ QList<Model*> Loader::load(const QString &fileName, QList<Note>& notes)
     }
 
     scene->destroy();
+
+    if (meshCount <= 0)
+    {
+        notes.append(Note(Note::Type::Error, QTranslator::tr("No meshes in scene")));
+        return QList<Model*>();
+    }
 
     return models;
 }
