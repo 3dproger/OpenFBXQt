@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>OpenFBXQt-shaders/fshader-colored.glsl</file>
+        <file>OpenFBXQt-shaders/fshader-textured.glsl</file>
+        <file>OpenFBXQt-shaders/vshader-no-joints.glsl</file>
+        <file>OpenFBXQt-shaders/vshader-with-joins.glsl</file>
+    </qresource>
+</RCC>
