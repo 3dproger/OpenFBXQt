@@ -18,6 +18,9 @@ public:
     friend class Skeleton;
 
     const QString& getName() const { return name; }
+
+    const QVector<std::shared_ptr<Joint>>& getChildren() const { return children; }
+
     void setRotation(const QQuaternion& rotation);
 
 private:

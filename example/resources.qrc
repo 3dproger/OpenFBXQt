@@ -12,5 +12,10 @@
         <file>images/SearchResults.svg</file>
         <file>images/Warning.svg</file>
         <file>images/Weight.svg</file>
+        <file>images/joint.png</file>
+        <file>images/material.png</file>
+        <file>images/model.png</file>
+        <file>images/skeleton.png</file>
+        <file>images/texture.png</file>
     </qresource>
 </RCC>

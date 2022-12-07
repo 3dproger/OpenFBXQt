@@ -26,6 +26,8 @@ public:
     QVector<std::shared_ptr<Model>> open(const QString& fileName, const OpenModelConfig config = OpenModelConfig(), QList<ofbxqt::Note>* notes = nullptr);
     void clear();
 
+    const QVector<std::shared_ptr<Model>>& getModels() const { return models; }
+
     void paintGL();
 
 private:

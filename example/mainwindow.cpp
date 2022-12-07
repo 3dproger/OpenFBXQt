@@ -9,12 +9,20 @@ MainWindow::MainWindow(QWidget *parent)
     , infoIcon(":/images/Info.svg")
     , warningIcon(":/images/Warning.svg")
     , errorIcon(":/images/Error.svg")
+    , jointIcon(":/images/joint.png")
+    , materialIcon(":/images/material.png")
+    , modelIcon(":/images/model.png")
+    , skeletonIcon(":/images/skeleton.png")
+    , textureIcon(":/images/texture.png")
 {
     ui->setupUi(this);
 
     ui->bottomPanelSplitter->setCollapsible(0, false);
     ui->bottomPanelSplitter->setSizes({ 100, 0 });
-    ui->leftPanelSplitter->setSizes({ 1000, 100 });
+    ui->rightPanelSplitter->setSizes({ 1000, 100 });
+    ui->rightPanelSplitter->setCollapsible(0, false);
+
+    updateSceneTree();
 }
 
 MainWindow::~MainWindow()
@@ -39,6 +47,7 @@ void MainWindow::on_actionClose_triggered()
     ofbxqt::Scene& scene = ui->sceneWidget->scene;
     scene.clear();
     ui->sceneWidget->resetCamera();
+    updateSceneTree();
 }
 
 void MainWindow::on_actionExit_triggered()
@@ -70,6 +79,8 @@ void MainWindow::open(const QString &fileName)
     {
         addLogMessage(ofbxqt::Note(ofbxqt::Note::Type::Info, tr("Open %1 model(s)").arg(models.count())));
     }
+
+    updateSceneTree();
 }
 
 void MainWindow::addLogMessage(const ofbxqt::Note &note)
@@ -97,5 +108,51 @@ void MainWindow::addLogMessage(const ofbxqt::Note &note)
     }
 
     ui->logWidget->scrollToBottom();
+}
+
+void MainWindow::updateSceneTree()
+{
+    QTreeWidget& tree = *ui->sceneTree;
+    tree.clear();
+    const ofbxqt::Scene& scene = ui->sceneWidget->scene;
+    const QVector<std::shared_ptr<ofbxqt::Model>>& models = scene.getModels();
+    if (models.isEmpty())
+    {
+        QTreeWidgetItem* item = new QTreeWidgetItem({ tr("Empty") });
+        tree.addTopLevelItem(item);
+        return;
+    }
+
+    for (int modelIndex = 0; modelIndex < models.count(); ++modelIndex)
+    {
+        const std::shared_ptr<ofbxqt::Model> model = models[modelIndex];
+        QTreeWidgetItem* modelItem = new QTreeWidgetItem({ tr("Model %1").arg(modelIndex) });
+        modelItem->setIcon(0, modelIcon);
+        tree.addTopLevelItem(modelItem);
+        modelItem->setExpanded(true);
+
+        if (model->skeleton.getRootJoint())
+        {
+            QTreeWidgetItem* skeletonItem = new QTreeWidgetItem({ tr("Skeleton")});
+            skeletonItem->setIcon(0, skeletonIcon);
+
+            fillJointItem(*skeletonItem, { model->skeleton.getRootJoint() });
+
+            modelItem->addChild(skeletonItem);
+        }
+    }
+}
+
+void MainWindow::fillJointItem(QTreeWidgetItem &parentItem, const QVector<std::shared_ptr<ofbxqt::Joint>>& joints)
+{
+    for (const std::shared_ptr<ofbxqt::Joint>& joint : joints)
+    {
+        QTreeWidgetItem* item = new QTreeWidgetItem({ joint->getName() });
+        item->setIcon(0, jointIcon);
+
+        fillJointItem(*item, joint->getChildren());
+
+        parentItem.addChild(item);
+    }
 }
 
