@@ -507,10 +507,10 @@ static Vec3 resolveVec3Property(const Object& object, const char* name, const Ve
 
 
 Object::Object(const Scene& _scene, const IElement& _element)
-    : element(_element)
+	: scene(_scene)
+	, element(_element)
+	, is_node(false)
 	, node_attribute(nullptr)
-    , is_node(false)
-    , scene(_scene)
 {
 	auto& e = (Element&)_element;
 	if (e.first_property && e.first_property->next)
@@ -1854,8 +1854,8 @@ struct OptionalError<Object*> parsePose(const Scene& scene, const Element& eleme
 		const Element* node = findChild(*pose_node, "Node");
 		const Element* matrix = findChild(*pose_node, "Matrix");
 
-        if (matrix && matrix->first_property && pose) {
-            parseArrayRaw(*matrix->first_property, &pose->matrix, sizeof(pose->matrix));
+		if (matrix->first_property) {
+			parseArrayRaw(*matrix->first_property, &pose->matrix, sizeof(pose->matrix));
 		}
 		pose->node_id = node->first_property->value;
 	}
@@ -2023,7 +2023,7 @@ template <typename T> static bool parseArrayRaw(const Property& property, T* out
 {
 	if (property.value.is_binary)
 	{
-        assert(out);
+		assert(out);
 
 		int elem_size = 1;
 		switch (property.type)
@@ -2036,32 +2036,29 @@ template <typename T> static bool parseArrayRaw(const Property& property, T* out
 		}
 
 		const u8* data = property.value.begin + sizeof(u32) * 3;
-        if (data > property.value.end)
-        {
-            return false;
-        }
+		if (data > property.value.end) return false;
 
-        u32 count = property.getCount();
-        u32 enc = *(const u32*)(property.value.begin + 4);
+		u32 count = property.getCount();
+		u32 enc = *(const u32*)(property.value.begin + 4);
 
 #if defined(__clang__)
         qDebug() << "this is a stub, do not pay attention"; // If you comment out this line, it crashes on android after compilation in Qt release mode. I don't know why this is happening
 #endif
 
-        u32 len = *(const u32*)(property.value.begin + 8);
+		u32 len = *(const u32*)(property.value.begin + 8);
 
-        if (enc == 0)
-        {
-            if ((int)len > max_size) return false;
-            if (data + len > property.value.end) return false;
-            memcpy(out, data, len);
-            return true;
-        }
-        else if (enc == 1)
-        {
-            if (int(elem_size * count) > max_size) return false;
-            return decompress(data, len, (u8*)out, elem_size * count);
-        }
+		if (enc == 0)
+		{
+			if ((int)len > max_size) return false;
+			if (data + len > property.value.end) return false;
+			memcpy(out, data, len);
+			return true;
+		}
+		else if (enc == 1)
+		{
+			if (int(elem_size * count) > max_size) return false;
+			return decompress(data, len, (u8*)out, elem_size * count);
+		}
 
 		return false;
 	}
@@ -2163,8 +2160,9 @@ template <> const char* fromString<Matrix>(const char* str, const char* end, Mat
 
 template <typename T> static void parseTextArray(const Property& property, std::vector<T>* out)
 {
+	out->clear();
 	const u8* iter = property.value.begin;
-	for (int i = 0; i < property.count; ++i)
+	while (iter < property.value.end)
 	{
 		T val;
 		iter = (const u8*)fromString<T>((const char*)iter, (const char*)property.value.end, &val);
@@ -2786,7 +2784,7 @@ bool ShapeImpl::postprocess(GeometryImpl* geom, Allocator& allocator)
 		while (n)
 		{
 			vertices[n->index] = vertices[n->index] + vr[i];
-			normals[n->index] = vertices[n->index] + nr[i];
+			normals[n->index] = normals[n->index] + nr[i];
 			n = n->next;
 		}
 	}
@@ -2979,7 +2977,7 @@ static void parseGlobalSettings(const Element& root, Scene* scene)
 
 		get_property("UpAxis", UpAxis, UpVector, toInt);
 		get_property("UpAxisSign", UpAxisSign, int, toInt);
-		get_property("FrontAxis", FrontAxis, FrontVector, toInt);
+		get_property("FrontAxis", FrontAxis, int, toInt);
 		get_property("FrontAxisSign", FrontAxisSign, int, toInt);
 		get_property("CoordAxis", CoordAxis, CoordSystem, toInt);
 		get_property("CoordAxisSign", CoordAxisSign, int, toInt);

@@ -5,6 +5,7 @@
 namespace ofbx
 {
 
+
 typedef uint8_t u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
@@ -450,14 +451,6 @@ enum UpVector
 };
 
 
-// Vector with origin at the screen pointing toward the camera.
-enum FrontVector
-{
-	FrontVector_ParityEven = 0,
-	FrontVector_ParityOdd = 1
-};
-
-
 // Specifies the third vector of the system.
 enum CoordSystem
 {
@@ -491,7 +484,9 @@ struct GlobalSettings
 {
 	UpVector UpAxis = UpVector_AxisX;
 	int UpAxisSign = 1;
-	FrontVector FrontAxis = FrontVector_ParityOdd;
+	// this seems to be 1-2 in Autodesk (odd/even parity), and 0-2 in Blender (axis as in UpAxis)
+	// I recommend to ignore FrontAxis and use just UpVector
+	int FrontAxis = 1; 
 	int FrontAxisSign = 1;
 	CoordSystem CoordAxis = CoordSystem_RightHanded;
 	int CoordAxisSign = 1;
