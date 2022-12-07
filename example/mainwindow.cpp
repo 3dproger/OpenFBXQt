@@ -14,7 +14,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->leftPanelSplitter->setSizes({ 1000, 100 });
 
+    // ============= TEST ==================
     open("D:/Projects/openfbxqt/build-OpenFBXQtViewer-Desktop_Qt_5_15_2_MinGW_32_bit-Debug/glove1.fbx");
+    // ============= TEST ==================
 }
 
 MainWindow::~MainWindow()
@@ -60,7 +62,7 @@ void MainWindow::open(const QString &fileName)
 
     if (models.isEmpty())
     {
-        addLogMessage(ofbxqt::Note(ofbxqt::Note::Type::Error, tr("Failed to open file \"%1\"").arg(fileName)));
+        addLogMessage(ofbxqt::Note(ofbxqt::Note::Type::Error, tr("No open models")));
     }
     else
     {

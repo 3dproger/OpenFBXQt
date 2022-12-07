@@ -396,8 +396,8 @@ Model *Loader::loadMesh(const ofbx::Mesh *mesh, const QString& absoluteDirectory
 
     if (foundTooMuchJoints)
     {
-        notes.append(Note(Note::Type::Warning, QTranslator::tr("More than %1 joints not supported. Extra joints will be ignored").arg(MaxJointsForVertex)));
-        qWarning() << Q_FUNC_INFO << "more than" << MaxJointsForVertex << "joints not supported. Extra joints will be ignored";
+        notes.append(Note(Note::Type::Warning, QTranslator::tr("More than %1 joint weights per vertex not supported. Extra weights will be ignored").arg(MaxJointsForVertex)));
+        qWarning() << Q_FUNC_INFO << "more than" << MaxJointsForVertex << "joint weights per vertex not supported. Extra weights will be ignored";
     }
 
     data->indexCount = geometry->getIndexCount();
