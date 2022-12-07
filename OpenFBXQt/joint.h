@@ -16,11 +16,14 @@ public:
     friend class Model;
     friend class Armature;
 
+    std::weak_ptr<Armature> armature;
+    std::weak_ptr<Joint> parent;
+    QVector<std::shared_ptr<Joint>> children;
+
     const QString& getName() const { return name; }
 
-    const QVector<std::shared_ptr<Joint>>& getChildren() const { return children; }
-
     void setRotation(const QQuaternion& rotation);
+    const QQuaternion& getRotation() const { return rotation; }
 
 private:
     Joint(const QString& name, const GLuint index, const QMatrix4x4& inverseBindMatrix);
@@ -32,10 +35,6 @@ private:
 
     QQuaternion rotation;
     QMatrix4x4 localTransformation;
-
-    std::weak_ptr<Armature> armature;
-    std::weak_ptr<Joint> parent;
-    QVector<std::shared_ptr<Joint>> children;
 };
 
 }

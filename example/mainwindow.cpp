@@ -194,7 +194,7 @@ void MainWindow::fillJointItem(QTreeWidgetItem &parentItem, const QVector<std::s
         item->setData(0, ItemTypeRole, (int)ItemType::Joint);
         item->setData(0, ItemPointerRole, (uint64_t)joint.get());
 
-        fillJointItem(*item, joint->getChildren());
+        fillJointItem(*item, joint->children);
 
         parentItem.addChild(item);
     }
@@ -244,12 +244,74 @@ void MainWindow::updateInspector()
         ofbxqt::Joint* joint = (ofbxqt::Joint*)object;
         layout.addWidget(new QLabel(joint->getName(), this));
 
-        QSlider* slider = new QSlider(Qt::Orientation::Horizontal, this);
-        layout.addWidget(slider);
-        QObject::connect(slider, &QSlider::valueChanged, this, [joint](int value)
         {
-            joint->setRotation(QQuaternion::fromAxisAndAngle(QVector3D(1, 0, 0), value));
-        });
+            QSlider* slider = new QSlider(Qt::Orientation::Horizontal, this);
+            layout.addWidget(slider);
+            slider->setMinimum(-180);
+            slider->setMaximum(180);
+            slider->setValue(joint->getRotation().toEulerAngles().x());
+            QObject::connect(slider, &QSlider::valueChanged, this, [this, joint](int value)
+            {
+                const QVector3D angles = joint->getRotation().toEulerAngles();
+                joint->setRotation(QQuaternion::fromEulerAngles(QVector3D(value, angles.y(), angles.z())));
+
+                if (!joint->armature.expired())
+                {
+                    joint->armature.lock()->update();
+                    ui->sceneWidget->update();
+                }
+                else
+                {
+                    qCritical() << Q_FUNC_INFO << "armature is null";
+                }
+            });
+        }
+
+        {
+            QSlider* slider = new QSlider(Qt::Orientation::Horizontal, this);
+            layout.addWidget(slider);
+            slider->setMinimum(-180);
+            slider->setMaximum(180);
+            slider->setValue(joint->getRotation().toEulerAngles().y());
+            QObject::connect(slider, &QSlider::valueChanged, this, [this, joint](int value)
+            {
+                const QVector3D angles = joint->getRotation().toEulerAngles();
+                joint->setRotation(QQuaternion::fromEulerAngles(QVector3D(angles.x(), value, angles.z())));
+
+                if (!joint->armature.expired())
+                {
+                    joint->armature.lock()->update();
+                    ui->sceneWidget->update();
+                }
+                else
+                {
+                    qCritical() << Q_FUNC_INFO << "armature is null";
+                }
+            });
+        }
+
+        {
+            QSlider* slider = new QSlider(Qt::Orientation::Horizontal, this);
+            layout.addWidget(slider);
+            slider->setMinimum(-180);
+            slider->setMaximum(180);
+            slider->setValue(joint->getRotation().toEulerAngles().z());
+            QObject::connect(slider, &QSlider::valueChanged, this, [this, joint](int value)
+            {
+                const QVector3D angles = joint->getRotation().toEulerAngles();
+                joint->setRotation(QQuaternion::fromEulerAngles(QVector3D(angles.x(), angles.y(), value)));
+
+                if (!joint->armature.expired())
+                {
+                    joint->armature.lock()->update();
+                    ui->sceneWidget->update();
+                }
+                else
+                {
+                    qCritical() << Q_FUNC_INFO << "armature is null";
+                }
+            });
+        }
     }
     else
     {

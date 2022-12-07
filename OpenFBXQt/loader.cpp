@@ -551,8 +551,11 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
     }
 
     ModelDataStorage::data.append(data);
+    std::shared_ptr<Model> model(new Model(data));
 
-    return std::shared_ptr<Model>(new Model(data));
+    model->armature->model = model;
+
+    return model;
 }
 
 void Loader::loadMaterial(const ofbx::Material *rawMaterial, std::shared_ptr<Material> material, const int meshIndex, const int materialIndex, const QString& absoluteDirectoryPath)

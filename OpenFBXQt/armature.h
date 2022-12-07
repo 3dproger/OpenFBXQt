@@ -5,11 +5,15 @@
 namespace ofbxqt
 {
 
+class Model;
+
 class Armature
 {
 public:
     friend class Loader;
     friend class Model;
+
+    std::weak_ptr<Model> model;
 
     void update();
 
