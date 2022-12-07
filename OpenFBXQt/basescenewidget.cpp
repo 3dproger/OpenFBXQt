@@ -5,6 +5,10 @@ namespace ofbxqt
 
 BaseSceneWidget::BaseSceneWidget(QWidget *parent)
     : QOpenGLWidget{parent}
+    , scene([this]()
+    {
+        update();
+    })
 {
 
 }

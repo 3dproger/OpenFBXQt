@@ -95,6 +95,4 @@ void SceneWidget::updateProjection()
     matrix.scale(zoom);
 
     scene.setProjection(matrix);
-
-    update();
 }

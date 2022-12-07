@@ -11,7 +11,7 @@ namespace ofbxqt
 class Scene : protected QOpenGLFunctions
 {
 public:
-    Scene();
+    Scene(std::function<void()> onNeedUpdateCallback);
     ~Scene();
 
     void initializeGL();
@@ -32,6 +32,8 @@ private:
     void addModel(Model* model);
 
     bool initializedGL = false;
+
+    std::function<void()> onNeedUpdateCallback = nullptr;
 
     const qreal nearDistance = 0.1;
     const qreal farDistance = 10000.0;

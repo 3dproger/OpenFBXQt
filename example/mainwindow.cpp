@@ -29,6 +29,13 @@ void MainWindow::on_actionOpen_triggered()
     open(fileName);
 }
 
+void MainWindow::on_actionClose_triggered()
+{
+    ofbxqt::Scene& scene = ui->sceneWidget->scene;
+
+    scene.clear();
+}
+
 void MainWindow::on_actionExit_triggered()
 {
     qApp->quit();
@@ -37,8 +44,6 @@ void MainWindow::on_actionExit_triggered()
 void MainWindow::open(const QString &fileName)
 {
     ofbxqt::Scene& scene = ui->sceneWidget->scene;
-
-    scene.clear();
 
     QList<ofbxqt::Note> notes;
     const QList<ofbxqt::Model*> models = scene.open(fileName, notes);

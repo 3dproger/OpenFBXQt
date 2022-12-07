@@ -6,7 +6,8 @@
 namespace ofbxqt
 {
 
-Scene::Scene()
+Scene::Scene(std::function<void()> onNeedUpdateCallback_)
+    : onNeedUpdateCallback(onNeedUpdateCallback_)
 {
     resizeGL(100, 100);
 }
@@ -54,11 +55,21 @@ void Scene::resizeGL(int width, int height)
     perspective = QMatrix4x4();
     perspective.setToIdentity();
     perspective.perspective(viewingAngle, aspect, nearDistance, farDistance);
+
+    if (onNeedUpdateCallback)
+    {
+        onNeedUpdateCallback();
+    }
 }
 
 void Scene::setProjection(const QMatrix4x4 &matrix)
 {
     projection = matrix;
+
+    if (onNeedUpdateCallback)
+    {
+        onNeedUpdateCallback();
+    }
 }
 
 QMatrix4x4 Scene::getProjection() const
@@ -91,12 +102,16 @@ QList<Model*> Scene::open(const QString &fileName, QList<Note> &notes)
         addModel(model);
     }
 
+    if (onNeedUpdateCallback)
+    {
+        onNeedUpdateCallback();
+    }
+
     return models;
 }
 
 void Scene::clear()
 {
-    // TODO clear ModelDataStorage
     for (Model* model : qAsConst(models))
     {
         delete model;
@@ -108,6 +123,11 @@ void Scene::clear()
         delete data;
     }
     ModelDataStorage::data.clear();
+
+    if (onNeedUpdateCallback)
+    {
+        onNeedUpdateCallback();
+    }
 }
 
 void ofbxqt::Scene::setMaxFps(qreal maxFps_)
