@@ -23,6 +23,7 @@ private:
 
     static Model* loadMesh(const ofbx::Mesh* mesh, const int meshIndex, const QString& absoluteDirectoryPath, QList<Note>& notes);
     static Material* loadMaterial(const ofbx::Material* rawMaterial, const int meshIndex, const int materialIndex, const QString& absoluteDirectoryPath, QList<Note>& notes);
+    static bool loadImage(QImage& image, QString& resultFileName, const ofbx::Texture* texture, const QString& absoluteDirectoryPath, const int meshIndex, const int materialIndex, ofbx::Texture::TextureType type, QList<Note>& notes);
 
     static void addVertexAttributeGLfloat(ModelData& modelData, const QString& nameForShader, const int tupleSize);
 

@@ -472,46 +472,11 @@ Material *Loader::loadMaterial(const ofbx::Material *rawMaterial, const int mesh
             {
                 isSupportedTextureType = true;
 
-                const QString relativeFileName = QFileInfo(convertString2048(texture->getRelativeFileName())).fileName();
-                if (relativeFileName.isEmpty())
+                QImage image;
+                QString fileName;
+                if (loadImage(image, fileName, texture, absoluteDirectoryPath, meshIndex, materialIndex, type, notes))
                 {
-                    notes.append(Note(Note::Type::Warning, QTranslator::tr("Empty texture image relative file name. Mesh %1, material %2, texture %3")
-                                      .arg(meshIndex).arg(materialIndex).arg(textureTypeStr)));
-                    qWarning() << Q_FUNC_INFO << "empty texture image relative file name. Mesh " << meshIndex << ", material" << materialIndex << ", texture" << textureTypeStr;
-                }
-                else
-                {
-                    const QString fileName = absoluteDirectoryPath + "/" + relativeFileName;
-                    const QFileInfo fileInfo(fileName);
-                    if (!fileInfo.exists())
-                    {
-                        notes.append(Note(Note::Type::Error, QTranslator::tr("File \"%1\" not found. Mesh %2, material %3, texture %4")
-                                          .arg(fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr)));
-                        qCritical() << Q_FUNC_INFO << "file" << fileName << "not found. Mesh " << meshIndex << ", material" << materialIndex << ", texture" << textureTypeStr;
-                    }
-                    else if (!fileInfo.isReadable())
-                    {
-                        notes.append(Note(Note::Type::Error, QTranslator::tr("File \"%1\" not readable. Mesh %2, material %3, texture %4")
-                                          .arg(fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr)));
-                        qCritical() << Q_FUNC_INFO << "file" << fileName << "not readable. Mesh " << meshIndex << ", material" << materialIndex << ", texture" << textureTypeStr;
-                    }
-                    else
-                    {
-                        const QImage image(fileName);
-                        if (image.isNull())
-                        {
-                            notes.append(Note(Note::Type::Error, QTranslator::tr("Failed to open image \"%1\". Mesh %2, material %3, texture %4")
-                                              .arg(fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr)));
-                            qCritical() << Q_FUNC_INFO << "failed to open image" << fileName << ". Mesh " << meshIndex << ", material" << materialIndex << ", texture" << textureTypeStr;
-                        }
-                        else
-                        {
-                            material = new TextureMaterial(image, fileName);
-
-                            notes.append(Note(Note::Type::Info, QTranslator::tr("Opened image \"%1\". Mesh %2, material %3, texture %4")
-                                              .arg(fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr)));
-                        }
-                    }
+                    material = new TextureMaterial(image, fileName);
                 }
             }
                 break;
@@ -541,6 +506,60 @@ Material *Loader::loadMaterial(const ofbx::Material *rawMaterial, const int mesh
     }
 
     return material;
+}
+
+bool Loader::loadImage(QImage &image, QString& resultFileName, const ofbx::Texture* texture, const QString &absoluteDirectoryPath, const int meshIndex, const int materialIndex, ofbx::Texture::TextureType type, QList<Note> &notes)
+{
+    image = QImage();
+    resultFileName = QString();
+
+    const QString textureTypeStr = textureTypeToString(type);
+
+    //TODO: implement true relative filename
+
+    const QString relativeFileName = QFileInfo(convertString2048(texture->getRelativeFileName())).fileName();
+    if (relativeFileName.isEmpty())
+    {
+        notes.append(Note(Note::Type::Warning, QTranslator::tr("Empty texture image relative file name. Mesh %1, material %2, texture %3")
+                          .arg(meshIndex).arg(materialIndex).arg(textureTypeStr)));
+        qWarning() << Q_FUNC_INFO << "empty texture image relative file name. Mesh " << meshIndex << ", material" << materialIndex << ", texture" << textureTypeStr;
+    }
+    else
+    {
+        const QString fileName = absoluteDirectoryPath + "/" + relativeFileName;
+        const QFileInfo fileInfo(fileName);
+        if (!fileInfo.exists())
+        {
+            notes.append(Note(Note::Type::Error, QTranslator::tr("File \"%1\" not found. Mesh %2, material %3, texture %4")
+                              .arg(fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr)));
+            qCritical() << Q_FUNC_INFO << "file" << fileName << "not found. Mesh " << meshIndex << ", material" << materialIndex << ", texture" << textureTypeStr;
+        }
+        else if (!fileInfo.isReadable())
+        {
+            notes.append(Note(Note::Type::Error, QTranslator::tr("File \"%1\" not readable. Mesh %2, material %3, texture %4")
+                              .arg(fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr)));
+            qCritical() << Q_FUNC_INFO << "file" << fileName << "not readable. Mesh " << meshIndex << ", material" << materialIndex << ", texture" << textureTypeStr;
+        }
+        else
+        {
+            if (image.load(fileName))
+            {
+                resultFileName = fileName;
+                notes.append(Note(Note::Type::Info, QTranslator::tr("Opened image \"%1\". Mesh %2, material %3, texture %4")
+                                  .arg(fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr)));
+
+                return true;
+            }
+            else
+            {
+                notes.append(Note(Note::Type::Error, QTranslator::tr("Failed to open image \"%1\". Mesh %2, material %3, texture %4")
+                                  .arg(fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr)));
+                qCritical() << Q_FUNC_INFO << "failed to open image" << fileName << ". Mesh " << meshIndex << ", material" << materialIndex << ", texture" << textureTypeStr;
+            }
+        }
+    }
+
+    return false;
 }
 
 void Loader::addVertexAttributeGLfloat(ModelData& data, const QString &nameForShader, const int tupleSize)
