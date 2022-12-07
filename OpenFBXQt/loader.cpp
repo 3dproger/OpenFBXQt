@@ -5,6 +5,8 @@
 #include <QTranslator>
 #include <QOpenGLFunctions>
 #include <QDebug>
+#include <QFileInfo>
+#include <QDir>
 
 namespace ofbxqt
 {
@@ -16,6 +18,31 @@ static QMatrix4x4 convertMatrix4x4(const ofbx::Matrix& source)
             source.m[1],  source.m[5],  source.m[9],  source.m[13],
             source.m[2],  source.m[6],  source.m[10], source.m[14],
             source.m[3],  source.m[7],  source.m[11], source.m[15]);
+}
+
+static QString convertString2048(const ofbx::DataView& dataView)
+{
+    static const int MaxSize = 2048;
+    char chars[MaxSize];
+    dataView.toString(chars);
+    return QString(chars);
+}
+
+static QString textureTypeToString(const ofbx::Texture::TextureType type)
+{
+    switch (type)
+    {
+    case ofbx::Texture::DIFFUSE: return "DIFFUSE";
+    case ofbx::Texture::NORMAL: return "NORMAL";
+    case ofbx::Texture::SPECULAR: return "SPECULAR";
+    case ofbx::Texture::SHININESS: return "SHININESS";
+    case ofbx::Texture::AMBIENT: return "AMBIENT";
+    case ofbx::Texture::EMISSIVE: return "EMISSIVE";
+    case ofbx::Texture::REFLECTION: return "REFLECTION";
+    case ofbx::Texture::COUNT: return "<COUNT>";
+    }
+
+    return "<UNKNOWN>";
 }
 
 static bool compareJointData(const QPair<GLuint, GLfloat>& joint1, const QPair<GLuint, GLfloat>& joint2)
@@ -53,10 +80,13 @@ QList<Model*> Loader::open(const QString &fileName, QList<Note>& notes)
         return QList<Model*>();
     }
 
+    const QFileInfo fileInfo(fileName);
+    const QString absoluteDirectoryPath = fileInfo.absoluteDir().absolutePath();
+
     QList<Model*> models;
     for (int i = 0; i < meshCount; ++i)
     {
-        Model* model = loadMesh(scene->getMesh(i), notes);
+        Model* model = loadMesh(scene->getMesh(i), absoluteDirectoryPath, notes);
         if (model)
         {
             models.append(model);
@@ -206,7 +236,7 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data,
     }
 }
 
-Model *Loader::loadMesh(const ofbx::Mesh *mesh, QList<Note>& notes)
+Model *Loader::loadMesh(const ofbx::Mesh *mesh, const QString& absoluteDirectoryPath, QList<Note>& notes)
 {
     if (!mesh)
     {
@@ -247,8 +277,27 @@ Model *Loader::loadMesh(const ofbx::Mesh *mesh, QList<Note>& notes)
         return nullptr;
     }
 
+    const int materialsCount = mesh->getMaterialCount();
+    if (materialsCount > 1)
+    {
+        notes.append(Note(Note::Type::Warning, QTranslator::tr("Only 1 material supported but found %1").arg(materialsCount)));
+        qWarning() << Q_FUNC_INFO << "only 1 material supported but found" << materialsCount;
+    }
+
+    Material* material = nullptr;
+    if (materialsCount > 0)
+    {
+        material = loadMaterial(mesh->getMaterial(0), absoluteDirectoryPath, notes);
+    }
+    else
+    {
+        notes.append(Note(Note::Type::Warning, QTranslator::tr("No materials")));
+        qWarning() << Q_FUNC_INFO << "no materials";
+    }
+
     ModelData* data = new ModelData();
 
+    data->material = material;
     data->sourceMatrix = convertMatrix4x4(mesh->getLocalTransform());
 
     QHash<GLuint, QVector<QPair<GLuint, GLfloat>>> jointsData;
@@ -388,6 +437,76 @@ Model *Loader::loadMesh(const ofbx::Mesh *mesh, QList<Note>& notes)
     ModelDataStorage::data.append(data);
 
     return new Model(*data);
+}
+
+Material *Loader::loadMaterial(const ofbx::Material *rawMaterial, const QString& absoluteDirectoryPath, QList<Note>& notes)
+{
+    if (!rawMaterial)
+    {
+        notes.append(Note(Note::Type::Error, QTranslator::tr("Internal error")));
+        qCritical() << Q_FUNC_INFO << "raw material is null";
+        return nullptr;
+    }
+
+    Material* material = nullptr;
+
+    for (int i = 0; i < (int)ofbx::Texture::TextureType::COUNT; ++i)
+    {
+        const ofbx::Texture::TextureType type = (ofbx::Texture::TextureType)i;
+        const QString textureTypeStr = textureTypeToString(type);
+
+        const ofbx::Texture* texture = rawMaterial->getTexture(type);
+        if (texture)
+        {
+            bool isSupportedTextureType = false;
+            switch (type)
+            {
+            case ofbx::Texture::DIFFUSE:
+            {
+                isSupportedTextureType = true;
+
+                const QString relativeFileName = convertString2048(texture->getRelativeFileName());
+                if (relativeFileName.isEmpty())
+                {
+                    notes.append(Note(Note::Type::Warning, QTranslator::tr("Texture \"%1\" has empty relative file name").arg(textureTypeStr)));
+                    qWarning() << Q_FUNC_INFO << "texture" << textureTypeStr << "has empty relative file name";
+                }
+                else
+                {
+                    const QString fileName = absoluteDirectoryPath + "/" + relativeFileName;
+                    const QImage image(fileName);
+                    if (image.isNull())
+                    {
+                        notes.append(Note(Note::Type::Error, QTranslator::tr("Failed to open image \"%1\" for texture \"%2\"").arg(fileName).arg(textureTypeStr)));
+                        qCritical() << Q_FUNC_INFO << "failed to open image" << fileName << "for texture" << textureTypeStr;
+                    }
+                    else
+                    {
+                        material = new TextureMaterial(image, fileName);
+                    }
+                }
+            }
+                break;
+
+            case ofbx::Texture::NORMAL:
+            case ofbx::Texture::SPECULAR:
+            case ofbx::Texture::SHININESS:
+            case ofbx::Texture::AMBIENT:
+            case ofbx::Texture::EMISSIVE:
+            case ofbx::Texture::REFLECTION:
+            case ofbx::Texture::COUNT:
+                break;
+            }
+
+            if (!isSupportedTextureType)
+            {
+                notes.append(Note(Note::Type::Warning, QTranslator::tr("Texture type \"%1\" not supported").arg(textureTypeStr)));
+                qWarning() << Q_FUNC_INFO << "texture type" << textureTypeStr << "not supported";
+            }
+        }
+    }
+
+    return material;
 }
 
 void Loader::addVertexAttributeGLfloat(ModelData& data, const QString &nameForShader, const int tupleSize)

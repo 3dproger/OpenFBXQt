@@ -29,9 +29,10 @@ struct Material
 
 struct TextureMaterial : public Material
 {
-    TextureMaterial(const QString& imageFileName_)
+    TextureMaterial(const QImage& image_, const QString& fileName_)
         : Material(Type::Image)
-        , imageFileName(imageFileName_)
+        , image(image_)
+        , fileName(fileName_)
     {}
 
     virtual ~TextureMaterial() override
@@ -45,17 +46,17 @@ struct TextureMaterial : public Material
 
     virtual void initializeGL() override
     {
-        const QImage image(imageFileName);
         if (image.isNull())
         {
-            qCritical() << Q_FUNC_INFO << "failed to open image" << imageFileName;
+            qCritical() << Q_FUNC_INFO << "image is null";
             return;
         }
 
         texture = new QOpenGLTexture(image.mirrored());
     }
 
-    const QString imageFileName;
+    const QImage image;
+    const QString fileName;
     mutable QOpenGLTexture* texture = nullptr;
 };
 
@@ -81,7 +82,7 @@ struct VertexAttributeInfo
 
 struct ModelData
 {
-    QString fileName;
+    Material* material = nullptr;
 
     QMatrix4x4 sourceMatrix;
 

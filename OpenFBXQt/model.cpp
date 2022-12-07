@@ -87,7 +87,11 @@ void Model::initializeGL()
 
     initializeOpenGLFunctions();
 
-    material = findTexture(data.fileName);
+    if (!material)
+    {
+        material = data.material;
+    }
+
     if (!material)
     {
         if (!spareColors.isEmpty())
@@ -98,7 +102,6 @@ void Model::initializeGL()
             }
 
             ColorMaterial* colorMaterial = new ColorMaterial(spareColors[currentSpareColors]);
-            colorMaterial->initializeGL();
             material = colorMaterial;
 
             currentSpareColors++;
@@ -108,6 +111,11 @@ void Model::initializeGL()
             material = new ColorMaterial(QColor(191, 191, 191));
             qWarning() << Q_FUNC_INFO << "spare colors is empty. Used default material";
         }
+    }
+
+    if (material)
+    {
+        material->initializeGL();
     }
 
     if (!data.vertexBuffer.isCreated())
@@ -340,21 +348,6 @@ void Model::paintGL(const QMatrix4x4 &projection)
 
     data.vertexBuffer.release();
     data.indexBuffer.release();
-}
-
-void Model::setMaterial(Material *material_)
-{
-    if (material)
-    {
-        delete material;
-    }
-
-    material = material_;
-}
-
-TextureMaterial *Model::findTexture(const QString &fileName)
-{
-    return nullptr;
 }
 
 }

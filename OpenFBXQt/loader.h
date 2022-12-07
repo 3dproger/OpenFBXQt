@@ -45,7 +45,8 @@ private:
                            QHash<GLuint, QVector<QPair<GLuint, GLfloat>>>& resultJointsData /*QHash<index of vertex, QVector<QPair<joint index, joint weight>>>*/,
                            QList<Note>& notes);
 
-    static Model* loadMesh(const ofbx::Mesh* mesh, QList<Note>& notes);
+    static Model* loadMesh(const ofbx::Mesh* mesh, const QString& absoluteDirectoryPath, QList<Note>& notes);
+    static Material* loadMaterial(const ofbx::Material* rawMaterial, const QString& absoluteDirectoryPath, QList<Note>& notes);
 
     static void addVertexAttributeGLfloat(ModelData& modelData, const QString& nameForShader, const int tupleSize);
 

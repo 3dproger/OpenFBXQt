@@ -39,7 +39,7 @@ void MainWindow::open(const QString &fileName)
     QList<ofbxqt::Note> notes;
     const QList<ofbxqt::Model*> models = ui->sceneWidget->scene.open(fileName, notes);
 
-    QString errorText = tr("File not loaded");
+    QString errorText;
 
     bool foundError = false;
     for (const ofbxqt::Note& note : qAsConst(notes))
@@ -69,6 +69,12 @@ void MainWindow::open(const QString &fileName)
 
     if (foundError || models.isEmpty())
     {
+        errorText = errorText.trimmed();
+        if (errorText.isEmpty())
+        {
+            errorText = tr("Unknown error");
+        }
+
         QMessageBox::critical(this, QString(), errorText);
     }
     else
