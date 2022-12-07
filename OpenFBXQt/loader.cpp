@@ -472,7 +472,7 @@ Material *Loader::loadMaterial(const ofbx::Material *rawMaterial, const int mesh
             {
                 isSupportedTextureType = true;
 
-                const QString relativeFileName = convertString2048(texture->getRelativeFileName());
+                const QString relativeFileName = QFileInfo(convertString2048(texture->getRelativeFileName())).fileName();
                 if (relativeFileName.isEmpty())
                 {
                     notes.append(Note(Note::Type::Warning, QTranslator::tr("Empty texture image relative file name. Mesh %1, material %2, texture %3")
