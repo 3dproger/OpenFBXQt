@@ -69,6 +69,7 @@ Model::Model(ModelData& data_)
 
 Model::~Model()
 {
+    // TODO: check
     if (material)
     {
         delete material;

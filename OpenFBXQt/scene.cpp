@@ -13,11 +13,7 @@ Scene::Scene()
 
 Scene::~Scene()
 {
-    for (Model* model : qAsConst(models))
-    {
-        delete model;
-    }
-    models.clear();
+    clear();
 }
 
 void Scene::initializeGL()
@@ -90,12 +86,28 @@ QList<Model*> Scene::open(const QString &fileName, QList<Note> &notes)
 {
     QList<Model*> models = Loader::open(fileName, notes);
 
-    for (ofbxqt::Model* model : models)
+    for (ofbxqt::Model* model : qAsConst(models))
     {
         addModel(model);
     }
 
     return models;
+}
+
+void Scene::clear()
+{
+    // TODO clear ModelDataStorage
+    for (Model* model : qAsConst(models))
+    {
+        delete model;
+    }
+    models.clear();
+
+    for (ModelData* data : qAsConst(ModelDataStorage::data))
+    {
+        delete data;
+    }
+    ModelDataStorage::data.clear();
 }
 
 void ofbxqt::Scene::setMaxFps(qreal maxFps_)

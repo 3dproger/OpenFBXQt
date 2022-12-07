@@ -24,6 +24,7 @@ public:
     QMatrix4x4 getProjection() const;
 
     QList<Model*> open(const QString& fileName, QList<ofbxqt::Note>& notes);
+    void clear();
 
     void paintGL();
 

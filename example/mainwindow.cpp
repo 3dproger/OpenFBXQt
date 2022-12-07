@@ -36,8 +36,12 @@ void MainWindow::on_actionExit_triggered()
 
 void MainWindow::open(const QString &fileName)
 {
+    ofbxqt::Scene& scene = ui->sceneWidget->scene;
+
+    scene.clear();
+
     QList<ofbxqt::Note> notes;
-    const QList<ofbxqt::Model*> models = ui->sceneWidget->scene.open(fileName, notes);
+    const QList<ofbxqt::Model*> models = scene.open(fileName, notes);
 
     QString errorText;
 

@@ -82,7 +82,7 @@ struct VertexAttributeInfo
 
 struct ModelData
 {
-    Material* material = nullptr;
+    Material* material = nullptr; // TODO: check
 
     QMatrix4x4 sourceMatrix;
 
@@ -101,7 +101,7 @@ struct ModelData
     mutable QOpenGLBuffer vertexBuffer = QOpenGLBuffer(QOpenGLBuffer::VertexBuffer);
     mutable QOpenGLBuffer indexBuffer = QOpenGLBuffer(QOpenGLBuffer::IndexBuffer);
 
-    mutable QOpenGLShaderProgram shader;
+    mutable QOpenGLShaderProgram shader; // TODO: move to shaders storage
 
     Skeleton skeleton;
 };
@@ -111,11 +111,12 @@ class ModelDataStorage
 public:
     friend class Model;
     friend class Loader;
+    friend class Scene;
 
 private:
     ModelDataStorage(){}
 
-    inline static QList<ModelData*> data = QList<ModelData*>();
+    inline static QList<ModelData*> data = QList<ModelData*>(); // TODO: move to Scene
 };
 
 }
