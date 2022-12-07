@@ -118,10 +118,6 @@ void Scene::clear()
     }
     models.clear();
 
-    for (ModelData* data : qAsConst(ModelDataStorage::data))
-    {
-        delete data;
-    }
     ModelDataStorage::data.clear();
 
     if (onNeedUpdateCallback)

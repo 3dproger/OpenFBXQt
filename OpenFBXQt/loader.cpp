@@ -69,6 +69,7 @@ QList<Model*> Loader::open(const QString &fileName, const OpenModelConfig config
     if (!file.open(QIODevice::ReadOnly))
     {
         addNote(Note::Type::Error, QTranslator::tr("Failed to open file \"%1\", error: \"%2\"").arg(fileName, file.errorString()));
+        qCritical() << Q_FUNC_INFO << "failed to open file" << fileName << ", error:" << file.errorString();
         return QList<Model*>();
     }
 
@@ -79,6 +80,7 @@ QList<Model*> Loader::open(const QString &fileName, const OpenModelConfig config
     if (!scene)
     {
         addNote(Note::Type::Error, QTranslator::tr("No scene"));
+        qCritical() << Q_FUNC_INFO << "no scene";
         return QList<Model*>();
     }
 
@@ -87,6 +89,7 @@ QList<Model*> Loader::open(const QString &fileName, const OpenModelConfig config
     {
         scene->destroy();
         addNote(Note::Type::Error, QTranslator::tr("No meshes in scene"));
+        qCritical() << Q_FUNC_INFO << "no meshes in scene";
         return QList<Model*>();
     }
 
@@ -129,6 +132,7 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data, QHash<GLuint, Q
     if (clusterCount <= 0)
     {
         addNote(Note::Type::Error, QTranslator::tr("No clusters in skin"));
+        qCritical() << Q_FUNC_INFO << "no clusters in skin";
         return;
     }
 
@@ -151,16 +155,16 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data, QHash<GLuint, Q
         const ofbx::Cluster* cluster = skin->getCluster(clusterNum);
         if (!cluster)
         {
-            addNote(Note::Type::Warning, QTranslator::tr("Internal error"));
-            qWarning() << Q_FUNC_INFO << "cluster is null at index" << clusterNum;
+            addNote(Note::Type::Error, QTranslator::tr("Internal error"));
+            qCritical() << Q_FUNC_INFO << "cluster is null at index" << clusterNum;
             continue;
         }
 
         const ofbx::Object* object = cluster->getLink();
         if (!object)
         {
-            addNote(Note::Type::Warning, QTranslator::tr("Internal error"));
-            qWarning() << Q_FUNC_INFO << "object/link of cluster is null at index" << clusterNum;
+            addNote(Note::Type::Error, QTranslator::tr("Internal error"));
+            qCritical() << Q_FUNC_INFO << "object/link of cluster is null at index" << clusterNum;
             continue;
         }
 
@@ -176,7 +180,11 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data, QHash<GLuint, Q
         if (data.skeleton.jointsByName.contains(name))
         {
             const QString newName = name + "_1";
-            qWarning() << Q_FUNC_INFO << "found joint with already exists name. Joint" << name << "renamed to" << newName;
+
+            addNote(Note::Type::Warning, QTranslator::tr("Found a joint with an already existing name. Joint \"%1\" renamed to \"%2\"")
+                    .arg(name, newName));
+
+            qWarning() << Q_FUNC_INFO << "found a joint with an already existing name. Joint" << name << "renamed to" << newName;
             data.skeleton.jointsByName.insert(newName, joint);
         }
         else
@@ -212,8 +220,8 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data, QHash<GLuint, Q
     {
         if (!clustersByJoints.contains(joint))
         {
-            addNote(Note::Type::Warning, QTranslator::tr("No cluster for joint \"%1\"").arg(joint->getName()));
-            qWarning() << Q_FUNC_INFO << QString("no cluster for joint \"%1\"").arg(joint->getName());
+            addNote(Note::Type::Error, QTranslator::tr("No cluster for joint \"%1\"").arg(joint->getName()));
+            qCritical() << Q_FUNC_INFO << QString("no cluster for joint \"%1\"").arg(joint->getName());
             continue;
         }
 
@@ -229,8 +237,8 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data, QHash<GLuint, Q
 
         if (indicesCount != weightsCount)
         {
-            addNote(Note::Type::Warning, QTranslator::tr("Joint indices count and joint weights count do not match for joint \"%1\"").arg(joint->getName()));
-            qWarning() << Q_FUNC_INFO << QString("joint indices count and joint weights count do not match for joint \"%1\"").arg(joint->getName());
+            addNote(Note::Type::Error, QTranslator::tr("Joint indices count and joint weights count do not match for joint \"%1\"").arg(joint->getName()));
+            qCritical() << Q_FUNC_INFO << QString("joint indices count and joint weights count do not match for joint \"%1\"").arg(joint->getName());
             continue;
         }
 
@@ -316,7 +324,7 @@ Model *Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIndex, const QStri
         }
     }
 
-    ModelData* data = new ModelData();
+    std::shared_ptr<ModelData> data(new ModelData());
 
     data->material = material;
     data->sourceMatrix = convertMatrix4x4(mesh->getLocalTransform());
@@ -549,9 +557,9 @@ bool Loader::loadImage(QImage &image, QString& resultFileName, const ofbx::Textu
 
     if (relativeFileName.isEmpty())
     {
-        addNote(Note::Type::Warning, QTranslator::tr("Empty texture image relative file name. Mesh %1, material %2, texture %3")
+        addNote(Note::Type::Error, QTranslator::tr("Empty texture image relative file name. Mesh %1, material %2, texture %3")
                           .arg(meshIndex).arg(materialIndex).arg(textureTypeStr));
-        qWarning() << Q_FUNC_INFO << "empty texture image relative file name. Mesh " << meshIndex << ", material" << materialIndex << ", texture" << textureTypeStr;
+        qCritical() << Q_FUNC_INFO << "empty texture image relative file name. Mesh " << meshIndex << ", material" << materialIndex << ", texture" << textureTypeStr;
     }
     else
     {

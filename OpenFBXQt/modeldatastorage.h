@@ -116,7 +116,7 @@ public:
 private:
     ModelDataStorage(){}
 
-    inline static QList<ModelData*> data = QList<ModelData*>(); // TODO: move to Scene
+    inline static QList<std::shared_ptr<ModelData>> data = QList<std::shared_ptr<ModelData>>(); // TODO: move to Scene
 };
 
 }
