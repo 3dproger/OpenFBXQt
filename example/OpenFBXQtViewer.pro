@@ -42,3 +42,6 @@ win32: {
         QMAKE_POST_LINK += $$(QTDIR)/bin/windeployqt --qmldir $$(QTDIR)/qml $$DESTDIR $$escape_expand(\\n\\t)
     }
 }
+
+RESOURCES += \
+    resources.qrc

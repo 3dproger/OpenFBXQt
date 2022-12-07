@@ -132,6 +132,10 @@
    <addaction name="menuFile"/>
   </widget>
   <action name="actionOpen">
+   <property name="icon">
+    <iconset resource="resources.qrc">
+     <normaloff>:/images/FolderGeneric@2x.png</normaloff>:/images/FolderGeneric@2x.png</iconset>
+   </property>
    <property name="text">
     <string>Open</string>
    </property>
@@ -157,6 +161,8 @@
    <header>scenewidget.h</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

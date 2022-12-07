@@ -6,6 +6,9 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
+    , infoIcon(":/images/Info.svg")
+    , warningIcon(":/images/Warning.svg")
+    , errorIcon(":/images/Error.svg")
 {
     ui->setupUi(this);
 
@@ -89,7 +92,22 @@ void MainWindow::open(const QString &fileName)
 
 void MainWindow::addLogMessage(const ofbxqt::Note &note)
 {
-    ui->logWidget->addItem(note.getText());
+    QListWidgetItem* item = new QListWidgetItem(note.getText());
+
+    switch (note.getType())
+    {
+    case ofbxqt::Note::Type::Info:
+        item->setIcon(infoIcon);
+        break;
+    case ofbxqt::Note::Type::Warning:
+        item->setIcon(warningIcon);
+        break;
+    case ofbxqt::Note::Type::Error:
+        item->setIcon(errorIcon);
+        break;
+    }
+
+    ui->logWidget->addItem(item);
 
     if (note.getType() != ofbxqt::Note::Type::Info)
     {

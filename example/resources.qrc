@@ -1,0 +1,16 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/Debug.svg</file>
+        <file>images/Error.svg</file>
+        <file>images/Eye.svg</file>
+        <file>images/FolderGeneric@2x.png</file>
+        <file>images/Gear.svg</file>
+        <file>images/Info.svg</file>
+        <file>images/Log.svg</file>
+        <file>images/ReloadFull.svg</file>
+        <file>images/Resources.svg</file>
+        <file>images/SearchResults.svg</file>
+        <file>images/Warning.svg</file>
+        <file>images/Weight.svg</file>
+    </qresource>
+</RCC>

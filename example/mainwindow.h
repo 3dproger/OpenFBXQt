@@ -25,4 +25,8 @@ private:
     void addLogMessage(const ofbxqt::Note& note);
 
     Ui::MainWindow *ui;
+
+    const QIcon infoIcon;
+    const QIcon warningIcon;
+    const QIcon errorIcon;
 };
