@@ -515,6 +515,13 @@ bool Loader::loadImage(QImage &image, QString& resultFileName, const ofbx::Textu
 
     const QString textureTypeStr = textureTypeToString(type);
 
+    if (!texture)
+    {
+        notes.append(Note(Note::Type::Error, QTranslator::tr("Internal error")));
+        qCritical() << Q_FUNC_INFO << "texture is null. Mesh " << meshIndex << ", material" << materialIndex << ", texture" << textureTypeStr;
+        return false;
+    }
+
     //TODO: implement true relative filename
 
     const QString relativeFileName = QFileInfo(convertString2048(texture->getRelativeFileName())).fileName();
