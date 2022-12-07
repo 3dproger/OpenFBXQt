@@ -5,6 +5,13 @@
 namespace ofbxqt
 {
 
+struct OpenModelConfig
+{
+    bool openMaterial = true;
+    bool openMaterialTexture = true;
+    bool openMaterialColor = true;
+};
+
 class Note
 {
 public:

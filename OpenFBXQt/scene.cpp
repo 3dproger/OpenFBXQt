@@ -93,9 +93,9 @@ void Scene::addModel(Model *model)
     models.append(model);
 }
 
-QList<Model*> Scene::open(const QString &fileName, QList<Note> &notes)
+QList<Model*> Scene::open(const QString &fileName, const OpenModelConfig config, QList<ofbxqt::Note>* notes)
 {
-    QList<Model*> models = Loader::open(fileName, notes);
+    QList<Model*> models = Loader().open(fileName, config, notes);
 
     for (ofbxqt::Model* model : qAsConst(models))
     {

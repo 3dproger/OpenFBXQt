@@ -55,15 +55,20 @@ static bool compareJointData(const QPair<GLuint, GLfloat>& joint1, const QPair<G
     return joint1.second >= joint2.second;
 }
 
-QList<Model*> Loader::open(const QString &fileName, QList<Note>& notes)
+Loader::Loader()
 {
-    notes = QList<Note>();
+
+}
+
+QList<Model*> Loader::open(const QString &fileName, const OpenModelConfig config_, QList<Note>* notes_)
+{
+    config = config_;
+    notes = notes_;
 
     QFile file(fileName);
     if (!file.open(QIODevice::ReadOnly))
     {
-        notes.append(Note(Note::Type::Error, QTranslator::tr("Failed to open file \"%1\", error: \"%2\"")
-                .arg(fileName, file.errorString())));
+        addNote(Note::Type::Error, QTranslator::tr("Failed to open file \"%1\", error: \"%2\"").arg(fileName, file.errorString()));
         return QList<Model*>();
     }
 
@@ -73,7 +78,7 @@ QList<Model*> Loader::open(const QString &fileName, QList<Note>& notes)
     ofbx::IScene* scene = ofbx::load((ofbx::u8*)rawData.constData(), rawData.size(), (ofbx::u64)ofbx::LoadFlags::TRIANGULATE);
     if (!scene)
     {
-        notes.append(Note(Note::Type::Error, QTranslator::tr("No scene")));
+        addNote(Note::Type::Error, QTranslator::tr("No scene"));
         return QList<Model*>();
     }
 
@@ -81,7 +86,7 @@ QList<Model*> Loader::open(const QString &fileName, QList<Note>& notes)
     if (meshCount <= 0)
     {
         scene->destroy();
-        notes.append(Note(Note::Type::Error, QTranslator::tr("No meshes in scene")));
+        addNote(Note::Type::Error, QTranslator::tr("No meshes in scene"));
         return QList<Model*>();
     }
 
@@ -91,7 +96,7 @@ QList<Model*> Loader::open(const QString &fileName, QList<Note>& notes)
     QList<Model*> models;
     for (int i = 0; i < meshCount; ++i)
     {
-        Model* model = loadMesh(scene->getMesh(i), i, absoluteDirectoryPath, notes);
+        Model* model = loadMesh(scene->getMesh(i), i, absoluteDirectoryPath);
         if (model)
         {
             models.append(model);
@@ -103,13 +108,19 @@ QList<Model*> Loader::open(const QString &fileName, QList<Note>& notes)
     return models;
 }
 
-void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data,
-                       QHash<GLuint, QVector<QPair<GLuint, GLfloat>>>& resultJointsData /*QHash<index of vertex, QVector<QPair<joint index, joint weight>>>*/,
-                       QList<Note>& notes)
+void Loader::addNote(const Note::Type type, const QString &text)
+{
+    if (notes)
+    {
+        notes->append(Note(type, text));
+    }
+}
+
+void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data, QHash<GLuint, QVector<QPair<GLuint, GLfloat>>>& resultJointsData)
 {
     if (!skin)
     {
-        notes.append(Note(Note::Type::Error, QTranslator::tr("Internal error")));
+        addNote(Note::Type::Error, QTranslator::tr("Internal error"));
         qCritical() << Q_FUNC_INFO << "skin is null";
         return;
     }
@@ -117,7 +128,7 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data,
     const int clusterCount = skin->getClusterCount();
     if (clusterCount <= 0)
     {
-        notes.append(Note(Note::Type::Error, QTranslator::tr("No clusters in skin")));
+        addNote(Note::Type::Error, QTranslator::tr("No clusters in skin"));
         return;
     }
 
@@ -140,7 +151,7 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data,
         const ofbx::Cluster* cluster = skin->getCluster(clusterNum);
         if (!cluster)
         {
-            notes.append(Note(Note::Type::Warning, QTranslator::tr("Internal error")));
+            addNote(Note::Type::Warning, QTranslator::tr("Internal error"));
             qWarning() << Q_FUNC_INFO << "cluster is null at index" << clusterNum;
             continue;
         }
@@ -148,7 +159,7 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data,
         const ofbx::Object* object = cluster->getLink();
         if (!object)
         {
-            notes.append(Note(Note::Type::Warning, QTranslator::tr("Internal error")));
+            addNote(Note::Type::Warning, QTranslator::tr("Internal error"));
             qWarning() << Q_FUNC_INFO << "object/link of cluster is null at index" << clusterNum;
             continue;
         }
@@ -201,7 +212,7 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data,
     {
         if (!clustersByJoints.contains(joint))
         {
-            notes.append(Note(Note::Type::Warning, QTranslator::tr("No cluster for joint \"%1\"").arg(joint->getName())));
+            addNote(Note::Type::Warning, QTranslator::tr("No cluster for joint \"%1\"").arg(joint->getName()));
             qWarning() << Q_FUNC_INFO << QString("no cluster for joint \"%1\"").arg(joint->getName());
             continue;
         }
@@ -218,7 +229,7 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data,
 
         if (indicesCount != weightsCount)
         {
-            notes.append(Note(Note::Type::Warning, QTranslator::tr("Joint indices count and joint weights count do not match for joint \"%1\"").arg(joint->getName())));
+            addNote(Note::Type::Warning, QTranslator::tr("Joint indices count and joint weights count do not match for joint \"%1\"").arg(joint->getName()));
             qWarning() << Q_FUNC_INFO << QString("joint indices count and joint weights count do not match for joint \"%1\"").arg(joint->getName());
             continue;
         }
@@ -241,11 +252,11 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data,
     }
 }
 
-Model *Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIndex, const QString& absoluteDirectoryPath, QList<Note>& notes)
+Model *Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIndex, const QString& absoluteDirectoryPath)
 {
     if (!mesh)
     {
-        notes.append(Note(Note::Type::Error, QTranslator::tr("Internal error")));
+        addNote(Note::Type::Error, QTranslator::tr("Internal error"));
         qCritical() << Q_FUNC_INFO << "mesh is null. Mesh" << meshIndex;
         return nullptr;
     }
@@ -253,7 +264,7 @@ Model *Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIndex, const QStri
     const ofbx::Geometry* geometry = mesh->getGeometry();
     if (!geometry)
     {
-        notes.append(Note(Note::Type::Error, QTranslator::tr("No geometry. Mesh %1").arg(meshIndex)));
+        addNote(Note::Type::Error, QTranslator::tr("No geometry. Mesh %1").arg(meshIndex));
         qCritical() << Q_FUNC_INFO << "no geometry. Mesh" << meshIndex;
         return nullptr;
     }
@@ -261,7 +272,7 @@ Model *Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIndex, const QStri
     const ofbx::Vec3* positions = geometry->getVertices();
     if (!positions)
     {
-        notes.append(Note(Note::Type::Error, QTranslator::tr("No positions. Mesh %1").arg(meshIndex)));
+        addNote(Note::Type::Error, QTranslator::tr("No positions. Mesh %1").arg(meshIndex));
         qCritical() << Q_FUNC_INFO << "no positions. Mesh" << meshIndex;
         return nullptr;
     }
@@ -269,7 +280,7 @@ Model *Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIndex, const QStri
     const int* indices = geometry->getFaceIndices();
     if (!indices)
     {
-        notes.append(Note(Note::Type::Error, QTranslator::tr("No indices. Mesh %1").arg(meshIndex)));
+        addNote(Note::Type::Error, QTranslator::tr("No indices. Mesh %1").arg(meshIndex));
         qCritical() << Q_FUNC_INFO << "no indices. Mesh" << meshIndex;
         return nullptr;
     }
@@ -277,7 +288,7 @@ Model *Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIndex, const QStri
     const ofbx::Vec3* normals = geometry->getNormals();
     if (!normals)
     {
-        notes.append(Note(Note::Type::Error, QTranslator::tr("No normals. Mesh %1").arg(meshIndex)));
+        addNote(Note::Type::Error, QTranslator::tr("No normals. Mesh %1").arg(meshIndex));
         qCritical() << Q_FUNC_INFO << "no normals. Mesh" << meshIndex;
         return nullptr;
     }
@@ -285,19 +296,19 @@ Model *Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIndex, const QStri
     const int materialsCount = mesh->getMaterialCount();
     if (materialsCount > 1)
     {
-        notes.append(Note(Note::Type::Warning, QTranslator::tr("Only one material supported but found %1. Mesh %2")
-                          .arg(materialsCount).arg(meshIndex)));
+        addNote(Note::Type::Warning, QTranslator::tr("Only one material supported but found %1. Mesh %2")
+                          .arg(materialsCount).arg(meshIndex));
         qWarning() << Q_FUNC_INFO << "only one material supported but found" << materialsCount << ". Mesh" << meshIndex;
     }
 
     Material* material = nullptr;
     if (materialsCount > 0)
     {
-        material = loadMaterial(mesh->getMaterial(0), meshIndex, 0, absoluteDirectoryPath, notes);
+        material = loadMaterial(mesh->getMaterial(0), meshIndex, 0, absoluteDirectoryPath);
     }
     else
     {
-        notes.append(Note(Note::Type::Warning, QTranslator::tr("No materials. Mesh %1").arg(meshIndex)));
+        addNote(Note::Type::Warning, QTranslator::tr("No materials. Mesh %1").arg(meshIndex));
         qWarning() << Q_FUNC_INFO << "no materials. Mesh" << meshIndex;
     }
 
@@ -311,7 +322,7 @@ Model *Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIndex, const QStri
     const ofbx::Skin* skin = geometry->getSkin();
     if (skin)
     {
-        loadJoints(skin, *data, jointsData, notes);
+        loadJoints(skin, *data, jointsData);
     }
 
     int idx = 0;
@@ -402,8 +413,8 @@ Model *Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIndex, const QStri
 
     if (foundTooMuchJoints)
     {
-        notes.append(Note(Note::Type::Warning, QTranslator::tr("More than %1 joint weights per vertex not supported. Extra weights will be ignored. Mesh %2")
-                          .arg(MaxJointsForVertex).arg(meshIndex)));
+        addNote(Note::Type::Warning, QTranslator::tr("More than %1 joint weights per vertex not supported. Extra weights will be ignored. Mesh %2")
+                          .arg(MaxJointsForVertex).arg(meshIndex));
         qWarning() << Q_FUNC_INFO << "more than" << MaxJointsForVertex << "joint weights per vertex not supported. Extra weights will be ignored, mesh" << meshIndex;
     }
 
@@ -435,7 +446,7 @@ Model *Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIndex, const QStri
 
     if (foundLessThenZero)
     {
-        notes.append(Note(Note::Type::Warning, QTranslator::tr("Internal error")));
+        addNote(Note::Type::Warning, QTranslator::tr("Internal error"));
         qWarning() << Q_FUNC_INFO << "rawIndex less than zero but i == 0";
     }
 
@@ -446,11 +457,11 @@ Model *Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIndex, const QStri
     return new Model(*data);
 }
 
-Material *Loader::loadMaterial(const ofbx::Material *rawMaterial, const int meshIndex, const int materialIndex, const QString& absoluteDirectoryPath, QList<Note>& notes)
+Material *Loader::loadMaterial(const ofbx::Material *rawMaterial, const int meshIndex, const int materialIndex, const QString& absoluteDirectoryPath)
 {
     if (!rawMaterial)
     {
-        notes.append(Note(Note::Type::Error, QTranslator::tr("Internal error")));
+        addNote(Note::Type::Error, QTranslator::tr("Internal error"));
         qCritical() << Q_FUNC_INFO << "raw material is null, mesh index =" << meshIndex << ", material index =" << materialIndex;
         return nullptr;
     }
@@ -474,7 +485,7 @@ Material *Loader::loadMaterial(const ofbx::Material *rawMaterial, const int mesh
 
                 QImage image;
                 QString fileName;
-                if (loadImage(image, fileName, texture, absoluteDirectoryPath, meshIndex, materialIndex, type, notes))
+                if (loadImage(image, fileName, texture, absoluteDirectoryPath, meshIndex, materialIndex, type))
                 {
                     material = new TextureMaterial(image, fileName);
                 }
@@ -493,8 +504,8 @@ Material *Loader::loadMaterial(const ofbx::Material *rawMaterial, const int mesh
 
             if (!isSupportedTextureType)
             {
-                notes.append(Note(Note::Type::Warning, QTranslator::tr("Texture type \"%1\" not supported. Mesh %2, material %3")
-                                  .arg(textureTypeStr).arg(meshIndex).arg(materialIndex)));
+                addNote(Note::Type::Warning, QTranslator::tr("Texture type \"%1\" not supported. Mesh %2, material %3")
+                                  .arg(textureTypeStr).arg(meshIndex).arg(materialIndex));
                 qWarning() << Q_FUNC_INFO << "texture type" << textureTypeStr << "not supported";
             }
         }
@@ -508,7 +519,7 @@ Material *Loader::loadMaterial(const ofbx::Material *rawMaterial, const int mesh
     return material;
 }
 
-bool Loader::loadImage(QImage &image, QString& resultFileName, const ofbx::Texture* texture, const QString &absoluteDirectoryPath, const int meshIndex, const int materialIndex, ofbx::Texture::TextureType type, QList<Note> &notes)
+bool Loader::loadImage(QImage &image, QString& resultFileName, const ofbx::Texture* texture, const QString &absoluteDirectoryPath, const int meshIndex, const int materialIndex, ofbx::Texture::TextureType type)
 {
     image = QImage();
     resultFileName = QString();
@@ -517,7 +528,7 @@ bool Loader::loadImage(QImage &image, QString& resultFileName, const ofbx::Textu
 
     if (!texture)
     {
-        notes.append(Note(Note::Type::Error, QTranslator::tr("Internal error")));
+        addNote(Note::Type::Error, QTranslator::tr("Internal error"));
         qCritical() << Q_FUNC_INFO << "texture is null. Mesh " << meshIndex << ", material" << materialIndex << ", texture" << textureTypeStr;
         return false;
     }
@@ -528,8 +539,8 @@ bool Loader::loadImage(QImage &image, QString& resultFileName, const ofbx::Textu
 
     if (relativeFileName.isEmpty())
     {
-        notes.append(Note(Note::Type::Warning, QTranslator::tr("Empty texture image relative file name. Mesh %1, material %2, texture %3")
-                          .arg(meshIndex).arg(materialIndex).arg(textureTypeStr)));
+        addNote(Note::Type::Warning, QTranslator::tr("Empty texture image relative file name. Mesh %1, material %2, texture %3")
+                          .arg(meshIndex).arg(materialIndex).arg(textureTypeStr));
         qWarning() << Q_FUNC_INFO << "empty texture image relative file name. Mesh " << meshIndex << ", material" << materialIndex << ", texture" << textureTypeStr;
     }
     else
@@ -538,21 +549,21 @@ bool Loader::loadImage(QImage &image, QString& resultFileName, const ofbx::Textu
 
         if (rawRelativeFileName != relativeFileName)
         {
-            notes.append(Note(Note::Type::Info, QTranslator::tr("Path \"%1\" converted to \"%2\". Mesh %3, material %4, texture %5")
-                              .arg(rawRelativeFileName, fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr)));
+            addNote(Note::Type::Info, QTranslator::tr("Path \"%1\" converted to \"%2\". Mesh %3, material %4, texture %5")
+                              .arg(rawRelativeFileName, fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr));
         }
 
         const QFileInfo fileInfo(fileName);
         if (!fileInfo.exists())
         {
-            notes.append(Note(Note::Type::Error, QTranslator::tr("File \"%1\" not found. Mesh %2, material %3, texture %4")
-                              .arg(fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr)));
+            addNote(Note::Type::Error, QTranslator::tr("File \"%1\" not found. Mesh %2, material %3, texture %4")
+                              .arg(fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr));
             qCritical() << Q_FUNC_INFO << "file" << fileName << "not found. Mesh " << meshIndex << ", material" << materialIndex << ", texture" << textureTypeStr;
         }
         else if (!fileInfo.isReadable())
         {
-            notes.append(Note(Note::Type::Error, QTranslator::tr("File \"%1\" not readable. Mesh %2, material %3, texture %4")
-                              .arg(fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr)));
+            addNote(Note::Type::Error, QTranslator::tr("File \"%1\" not readable. Mesh %2, material %3, texture %4")
+                              .arg(fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr));
             qCritical() << Q_FUNC_INFO << "file" << fileName << "not readable. Mesh " << meshIndex << ", material" << materialIndex << ", texture" << textureTypeStr;
         }
         else
@@ -560,15 +571,15 @@ bool Loader::loadImage(QImage &image, QString& resultFileName, const ofbx::Textu
             if (image.load(fileName))
             {
                 resultFileName = fileName;
-                notes.append(Note(Note::Type::Info, QTranslator::tr("Opened image \"%1\". Mesh %2, material %3, texture %4")
-                                  .arg(fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr)));
+                addNote(Note::Type::Info, QTranslator::tr("Opened image \"%1\". Mesh %2, material %3, texture %4")
+                                  .arg(fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr));
 
                 return true;
             }
             else
             {
-                notes.append(Note(Note::Type::Error, QTranslator::tr("Failed to open image \"%1\". Mesh %2, material %3, texture %4")
-                                  .arg(fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr)));
+                addNote(Note::Type::Error, QTranslator::tr("Failed to open image \"%1\". Mesh %2, material %3, texture %4")
+                                  .arg(fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr));
                 qCritical() << Q_FUNC_INFO << "failed to open image" << fileName << ". Mesh " << meshIndex << ", material" << materialIndex << ", texture" << textureTypeStr;
             }
         }

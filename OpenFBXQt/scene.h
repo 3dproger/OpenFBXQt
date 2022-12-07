@@ -23,7 +23,7 @@ public:
     void setProjection(const QMatrix4x4& matrix);
     QMatrix4x4 getProjection() const;
 
-    QList<Model*> open(const QString& fileName, QList<ofbxqt::Note>& notes);
+    QList<Model*> open(const QString& fileName, const OpenModelConfig config = OpenModelConfig(), QList<ofbxqt::Note>* notes = nullptr);
     void clear();
 
     void paintGL();

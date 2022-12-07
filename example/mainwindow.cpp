@@ -53,7 +53,9 @@ void MainWindow::open(const QString &fileName)
     ofbxqt::Scene& scene = ui->sceneWidget->scene;
 
     QList<ofbxqt::Note> notes;
-    const QList<ofbxqt::Model*> models = scene.open(fileName, notes);
+    ofbxqt::OpenModelConfig config;
+
+    const QList<ofbxqt::Model*> models = scene.open(fileName, config, &notes);
     for (const ofbxqt::Note& note : qAsConst(notes))
     {
         addLogMessage(note);
