@@ -8,7 +8,7 @@ namespace ofbxqt
 class Loader;
 class Model;
 
-class Skeleton
+class Armature
 {
 public:
     friend class Loader;

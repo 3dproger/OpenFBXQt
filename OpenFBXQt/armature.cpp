@@ -1,9 +1,9 @@
-#include "skeleton.h"
+#include "armature.h"
 
 namespace ofbxqt
 {
 
-void Skeleton::update()
+void Armature::update()
 {
     if (!rootJoint)
     {
@@ -13,17 +13,17 @@ void Skeleton::update()
     update(rootJoint);
 }
 
-const QVector<std::shared_ptr<Joint>> &Skeleton::getJoints() const
+const QVector<std::shared_ptr<Joint>> &Armature::getJoints() const
 {
     return joints;
 }
 
-std::shared_ptr<Joint> Skeleton::getRootJoint()
+std::shared_ptr<Joint> Armature::getRootJoint()
 {
     return rootJoint;
 }
 
-std::shared_ptr<Joint> Skeleton::getJointByName(const QString &name)
+std::shared_ptr<Joint> Armature::getJointByName(const QString &name)
 {
     const int index = jointsByName.value(name, -1);
     if (index == -1)
@@ -40,7 +40,7 @@ std::shared_ptr<Joint> Skeleton::getJointByName(const QString &name)
     return joints[index];
 }
 
-void Skeleton::update(std::shared_ptr<Joint> joint, const QMatrix4x4 &parentMatrix)
+void Armature::update(std::shared_ptr<Joint> joint, const QMatrix4x4 &parentMatrix)
 {
     if (!joint)
     {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "skeleton.h"
+#include "armature.h"
 #include "material.h"
 #include <QString>
 #include <QOpenGLBuffer>
@@ -44,7 +44,7 @@ struct ModelData
 
     mutable QOpenGLShaderProgram shader; // TODO: move to shaders storage
 
-    Skeleton skeleton;
+    Armature armature;
 };
 
 class ModelDataStorage

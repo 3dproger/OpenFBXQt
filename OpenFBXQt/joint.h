@@ -7,15 +7,12 @@
 namespace ofbxqt
 {
 
-class Model;
-class Loader;
-
 class Joint
 {
 public:
     friend class Loader;
     friend class Model;
-    friend class Skeleton;
+    friend class Armature;
 
     const QString& getName() const { return name; }
 

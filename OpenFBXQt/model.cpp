@@ -4,7 +4,7 @@ namespace ofbxqt
 {
 
 Model::Model(std::shared_ptr<ModelData> data_)
-    : skeleton(data_->skeleton)
+    : armature(data_->armature)
     , data(data_)
 {
     if (!data)
@@ -121,7 +121,7 @@ void Model::initializeGL()
     if (!data->shader.isLinked())
     {
         QString vshaderFileName;
-        if (data->skeleton.getJoints().count() > 0)
+        if (data->armature.getJoints().count() > 0)
         {
             vshaderFileName = ":/OpenFBXQt-shaders/vshader-with-joins.glsl";
         }
@@ -230,13 +230,13 @@ void Model::paintGL(const QMatrix4x4 &projection)
         data->shader.setUniformValue("u_color", QColor());
     }
 
-    if (needUpdateSkeleton)
+    if (needUpdateArmature)
     {
-        skeleton.update();
-        needUpdateSkeleton = false;
+        armature.update();
+        needUpdateArmature = false;
     }
 
-    const QVector<QMatrix4x4>& matrices = skeleton.jointsResultMatrices;
+    const QVector<QMatrix4x4>& matrices = armature.jointsResultMatrices;
     if (matrices.count() > 0)
     {
         data->shader.setUniformValueArray("joints", matrices.data(), matrices.count());

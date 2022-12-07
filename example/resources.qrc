@@ -15,7 +15,7 @@
         <file>images/joint.png</file>
         <file>images/material.png</file>
         <file>images/model.png</file>
-        <file>images/skeleton.png</file>
+        <file>images/armature.png</file>
         <file>images/texture.png</file>
     </qresource>
 </RCC>

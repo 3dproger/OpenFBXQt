@@ -3,6 +3,15 @@
 #include <QDebug>
 #include <QFileDialog>
 
+namespace
+{
+
+enum class ItemType { NotSetted, Model, Armature, Joint };
+static const int ItemTypeRole = Qt::UserRole + 1;
+static const int ItemPointerRole = Qt::UserRole + 2;
+
+}
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -12,7 +21,7 @@ MainWindow::MainWindow(QWidget *parent)
     , jointIcon(":/images/joint.png")
     , materialIcon(":/images/material.png")
     , modelIcon(":/images/model.png")
-    , skeletonIcon(":/images/skeleton.png")
+    , armatureIcon(":/images/armature.png")
     , textureIcon(":/images/texture.png")
 {
     ui->setupUi(this);
@@ -114,6 +123,7 @@ void MainWindow::updateSceneTree()
 {
     QTreeWidget& tree = *ui->sceneTree;
     tree.clear();
+    updateInspector();
     const ofbxqt::Scene& scene = ui->sceneWidget->scene;
     const QVector<std::shared_ptr<ofbxqt::Model>>& models = scene.getModels();
     if (models.isEmpty())
@@ -130,17 +140,23 @@ void MainWindow::updateSceneTree()
         modelItem->setIcon(0, modelIcon);
         tree.addTopLevelItem(modelItem);
         modelItem->setExpanded(true);
+        modelItem->setData(0, ItemTypeRole, (int)ItemType::Model);
+        modelItem->setData(0, ItemPointerRole, (uint64_t)model.get());
 
-        if (model->skeleton.getRootJoint())
+        if (model->armature.getRootJoint())
         {
-            QTreeWidgetItem* skeletonItem = new QTreeWidgetItem({ tr("Skeleton")});
-            skeletonItem->setIcon(0, skeletonIcon);
+            QTreeWidgetItem* armatureItem = new QTreeWidgetItem({ tr("Armature")});
+            armatureItem->setIcon(0, armatureIcon);
+            armatureItem->setData(0, ItemTypeRole, (int)ItemType::Armature);
+            armatureItem->setData(0, ItemPointerRole, (uint64_t)&model->armature);
 
-            fillJointItem(*skeletonItem, { model->skeleton.getRootJoint() });
+            fillJointItem(*armatureItem, { model->armature.getRootJoint() });
 
-            modelItem->addChild(skeletonItem);
+            modelItem->addChild(armatureItem);
         }
     }
+
+    updateInspector();
 }
 
 void MainWindow::fillJointItem(QTreeWidgetItem &parentItem, const QVector<std::shared_ptr<ofbxqt::Joint>>& joints)
@@ -149,6 +165,8 @@ void MainWindow::fillJointItem(QTreeWidgetItem &parentItem, const QVector<std::s
     {
         QTreeWidgetItem* item = new QTreeWidgetItem({ joint->getName() });
         item->setIcon(0, jointIcon);
+        item->setData(0, ItemTypeRole, (int)ItemType::Joint);
+        item->setData(0, ItemPointerRole, (uint64_t)item);
 
         fillJointItem(*item, joint->getChildren());
 
@@ -156,3 +174,47 @@ void MainWindow::fillJointItem(QTreeWidgetItem &parentItem, const QVector<std::s
     }
 }
 
+void MainWindow::on_sceneTree_currentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)
+{
+    updateInspector();
+}
+
+void MainWindow::updateInspector()
+{
+    QTreeWidgetItem* item = ui->sceneTree->currentItem();
+    if (!item)
+    {
+        //TODO clear
+        return;
+    }
+
+    const ItemType itemType = (ItemType)item->data(0, ItemTypeRole).toInt();
+    if (itemType == ItemType::NotSetted)
+    {
+        return;
+    }
+
+    void* object = (void*)item->data(0, ItemPointerRole).toULongLong();
+    if (!object)
+    {
+        qCritical() << Q_FUNC_INFO << "object is null";
+        return;
+    }
+
+    if (itemType == ItemType::Model)
+    {
+        ofbxqt::Model* model = (ofbxqt::Model*)object;
+    }
+    else if (itemType == ItemType::Armature)
+    {
+        ofbxqt::Armature* armature = (ofbxqt::Armature*)object;
+    }
+    else if (itemType == ItemType::Joint)
+    {
+        ofbxqt::Joint* joint = (ofbxqt::Joint*)object;
+    }
+    else
+    {
+        qCritical() << Q_FUNC_INFO << "unknown item type" << (int)itemType;
+    }
+}

@@ -22,11 +22,14 @@ private slots:
     void on_actionClose_triggered();
     void on_actionExit_triggered();
 
+    void on_sceneTree_currentItemChanged(QTreeWidgetItem *current, QTreeWidgetItem *previous);
+
 private:
     void open(const QString& fileName);
     void addLogMessage(const ofbxqt::Note& note);
     void updateSceneTree();
     void fillJointItem(QTreeWidgetItem& parentItem, const QVector<std::shared_ptr<ofbxqt::Joint>>& joints);
+    void updateInspector();
 
     Ui::MainWindow *ui;
 
@@ -37,6 +40,6 @@ private:
     const QIcon jointIcon;
     const QIcon materialIcon;
     const QIcon modelIcon;
-    const QIcon skeletonIcon;
+    const QIcon armatureIcon;
     const QIcon textureIcon;
 };

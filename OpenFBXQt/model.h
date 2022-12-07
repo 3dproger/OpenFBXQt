@@ -1,6 +1,6 @@
 #pragma once
 
-#include "skeleton.h"
+#include "armature.h"
 #include "modeldatastorage.h"
 #include <QColor>
 #include <QOpenGLFunctions>
@@ -13,7 +13,7 @@ class Loader;
 class Model : protected QOpenGLFunctions
 {
 public:
-    Skeleton skeleton;
+    Armature armature;
 
     friend class Loader;
 
@@ -30,7 +30,7 @@ private:
     std::shared_ptr<ModelData> data;
     QMatrix4x4 matrix;
 
-    bool needUpdateSkeleton = false;
+    bool needUpdateArmature = false;
 };
 
 }
