@@ -21,6 +21,11 @@ void SceneWidget::mousePressEvent(QMouseEvent *event)
         return;
     }
 
+    if (!event->buttons().testFlag(Qt::LeftButton))
+    {
+        return;
+    }
+
     setCursor(Qt::ClosedHandCursor);
 
     prevMousePos = event->globalPos();
