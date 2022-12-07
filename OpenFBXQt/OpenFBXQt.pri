@@ -20,6 +20,7 @@ HEADERS += \
         $$PWD/loader.h \
         $$PWD/model.h \
         $$PWD/modeldatastorage.h \
+        $$PWD/openfbxqt.h \
         $$PWD/scene.h \
         $$PWD/skeleton.h
 

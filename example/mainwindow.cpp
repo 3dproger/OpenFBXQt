@@ -1,15 +1,19 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "loader.h"
 #include <QDebug>
 #include <QFileDialog>
-#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+    ui->bottomPanelSplitter->setCollapsible(0, false);
+    ui->bottomPanelSplitter->setSizes({ 100, 0 });
+
+    ui->leftPanelSplitter->setSizes({ 1000, 100 });
+
     open("D:/Projects/openfbxqt/build-OpenFBXQtViewer-Desktop_Qt_5_15_2_MinGW_32_bit-Debug/glove1.fbx");
 }
 
@@ -31,8 +35,8 @@ void MainWindow::on_actionOpen_triggered()
 
 void MainWindow::on_actionClose_triggered()
 {
+    ui->logWidget->clear();
     ofbxqt::Scene& scene = ui->sceneWidget->scene;
-
     scene.clear();
 }
 
@@ -43,52 +47,29 @@ void MainWindow::on_actionExit_triggered()
 
 void MainWindow::open(const QString &fileName)
 {
+    addLogMessage(ofbxqt::Note(ofbxqt::Note::Type::Info, tr("Opening file \"%1\"").arg(fileName)));
+
     ofbxqt::Scene& scene = ui->sceneWidget->scene;
 
     QList<ofbxqt::Note> notes;
     const QList<ofbxqt::Model*> models = scene.open(fileName, notes);
-
-    QString errorText;
-
-    bool foundError = false;
     for (const ofbxqt::Note& note : qAsConst(notes))
     {
-        switch (note.getType())
-        {
-        case ofbxqt::Note::Type::Info:
-            qInfo() << Q_FUNC_INFO << note.getText();
-            break;
-        case ofbxqt::Note::Type::Warning:
-            qWarning() << Q_FUNC_INFO << note.getText();
-            break;
-        case ofbxqt::Note::Type::Error:
-        {
-            foundError = true;
-
-            if (!errorText.isEmpty())
-            {
-                errorText += ". ";
-            }
-
-            errorText += note.getText();
-        }
-            break;
-        }
+        addLogMessage(note);
     }
 
-    if (foundError || models.isEmpty())
+    if (models.isEmpty())
     {
-        errorText = errorText.trimmed();
-        if (errorText.isEmpty())
-        {
-            errorText = tr("Unknown error");
-        }
-
-        QMessageBox::critical(this, QString(), errorText);
+        addLogMessage(ofbxqt::Note(ofbxqt::Note::Type::Error, tr("Failed to open file \"%1\"").arg(fileName)));
     }
     else
     {
-        // ============= TEST ==================
+        addLogMessage(ofbxqt::Note(ofbxqt::Note::Type::Info, tr("Open %1 model(s)").arg(models.count())));
+    }
+
+    // ============= TEST ==================
+    if (!models.isEmpty())
+    {
         if (ofbxqt::Joint* j = models[0]->skeleton.getJointByName("Bone.Forefinger.002"); j)
         {
             j->setRotation(QQuaternion::fromAxisAndAngle(QVector3D(0, 0, 1).normalized(), -30));
@@ -100,7 +81,17 @@ void MainWindow::open(const QString &fileName)
         }
 
         models[0]->skeleton.update();
-        // ============= TEST ==================
+    }
+    // ============= TEST ==================
+}
+
+void MainWindow::addLogMessage(const ofbxqt::Note &note)
+{
+    ui->logWidget->addItem(note.getText());
+
+    if (note.getType() != ofbxqt::Note::Type::Info)
+    {
+        ui->bottomPanelSplitter->setSizes({1000, 200});
     }
 }
 

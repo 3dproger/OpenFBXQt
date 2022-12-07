@@ -1,6 +1,6 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#pragma once
 
+#include "openfbxqt.h"
 #include <QMainWindow>
 
 QT_BEGIN_NAMESPACE
@@ -22,7 +22,7 @@ private slots:
 
 private:
     void open(const QString& fileName);
+    void addLogMessage(const ofbxqt::Note& note);
 
     Ui::MainWindow *ui;
 };
-#endif // MAINWINDOW_H
