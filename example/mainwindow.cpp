@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include <QDebug>
 #include <QFileDialog>
+#include <QLabel>
 
 namespace
 {
@@ -9,6 +10,26 @@ namespace
 enum class ItemType { NotSetted, Model, Armature, Joint };
 static const int ItemTypeRole = Qt::UserRole + 1;
 static const int ItemPointerRole = Qt::UserRole + 2;
+
+void clearLayout(QLayout& layout)
+{
+    QLayoutItem *item;
+    while ((item = layout.takeAt(0)))
+    {
+        if (item->layout())
+        {
+            clearLayout(*item->layout());
+            item->layout()->deleteLater();
+        }
+
+        if (item->widget())
+        {
+           item->widget()->deleteLater();
+        }
+
+        delete item;
+    }
+}
 
 }
 
@@ -166,7 +187,7 @@ void MainWindow::fillJointItem(QTreeWidgetItem &parentItem, const QVector<std::s
         QTreeWidgetItem* item = new QTreeWidgetItem({ joint->getName() });
         item->setIcon(0, jointIcon);
         item->setData(0, ItemTypeRole, (int)ItemType::Joint);
-        item->setData(0, ItemPointerRole, (uint64_t)item);
+        item->setData(0, ItemPointerRole, (uint64_t)joint.get());
 
         fillJointItem(*item, joint->getChildren());
 
@@ -181,10 +202,12 @@ void MainWindow::on_sceneTree_currentItemChanged(QTreeWidgetItem*, QTreeWidgetIt
 
 void MainWindow::updateInspector()
 {
+    QGridLayout& layout = *ui->inspectorLayout;
+    clearLayout(layout);
+
     QTreeWidgetItem* item = ui->sceneTree->currentItem();
     if (!item)
     {
-        //TODO clear
         return;
     }
 
@@ -204,17 +227,22 @@ void MainWindow::updateInspector()
     if (itemType == ItemType::Model)
     {
         ofbxqt::Model* model = (ofbxqt::Model*)object;
+        layout.addWidget(new QLabel("Model", this));
     }
     else if (itemType == ItemType::Armature)
     {
         ofbxqt::Armature* armature = (ofbxqt::Armature*)object;
+        layout.addWidget(new QLabel("Armature", this));
     }
     else if (itemType == ItemType::Joint)
     {
         ofbxqt::Joint* joint = (ofbxqt::Joint*)object;
+        layout.addWidget(new QLabel(joint->getName(), this));
     }
     else
     {
         qCritical() << Q_FUNC_INFO << "unknown item type" << (int)itemType;
     }
+
+    layout.addItem(new QSpacerItem(10, 10, QSizePolicy::Minimum, QSizePolicy::MinimumExpanding), layout.rowCount(), 0);
 }

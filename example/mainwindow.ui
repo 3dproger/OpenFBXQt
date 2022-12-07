@@ -145,7 +145,7 @@
                   <x>0</x>
                   <y>0</y>
                   <width>382</width>
-                  <height>155</height>
+                  <height>83</height>
                  </rect>
                 </property>
                 <layout class="QVBoxLayout" name="verticalLayout_6">
@@ -162,7 +162,20 @@
                   <number>0</number>
                  </property>
                  <item>
-                  <layout class="QGridLayout" name="inspectorLayout"/>
+                  <layout class="QGridLayout" name="inspectorLayout">
+                   <property name="leftMargin">
+                    <number>11</number>
+                   </property>
+                   <property name="topMargin">
+                    <number>11</number>
+                   </property>
+                   <property name="rightMargin">
+                    <number>11</number>
+                   </property>
+                   <property name="bottomMargin">
+                    <number>11</number>
+                   </property>
+                  </layout>
                  </item>
                 </layout>
                </widget>
