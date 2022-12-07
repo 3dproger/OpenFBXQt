@@ -584,13 +584,6 @@ void Loader::loadMaterial(const ofbx::Material *rawMaterial, std::shared_ptr<Mat
                 break;
 
             case ofbx::Texture::NORMAL:
-                isSupportedTextureType = true;
-                if (config.loadNormalTexture)
-                {
-                    loadTexture(rawTexture, material->normalTexture, absoluteDirectoryPath, meshIndex, materialIndex, type);
-                }
-                break;
-
             case ofbx::Texture::SPECULAR:
             case ofbx::Texture::SHININESS:
             case ofbx::Texture::AMBIENT:
