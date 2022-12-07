@@ -92,5 +92,7 @@ void MainWindow::addLogMessage(const ofbxqt::Note &note)
     {
         ui->bottomPanelSplitter->setSizes({1000, 200});
     }
+
+    ui->logWidget->scrollToBottom();
 }
 

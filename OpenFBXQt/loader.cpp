@@ -522,9 +522,10 @@ bool Loader::loadImage(QImage &image, QString& resultFileName, const ofbx::Textu
         return false;
     }
 
-    //TODO: implement true relative filename
+    //TODO: implement search in relative directory path
+    const QString rawRelativeFileName = convertString2048(texture->getRelativeFileName());
+    const QString relativeFileName = QFileInfo(rawRelativeFileName).fileName();
 
-    const QString relativeFileName = QFileInfo(convertString2048(texture->getRelativeFileName())).fileName();
     if (relativeFileName.isEmpty())
     {
         notes.append(Note(Note::Type::Warning, QTranslator::tr("Empty texture image relative file name. Mesh %1, material %2, texture %3")
@@ -534,6 +535,13 @@ bool Loader::loadImage(QImage &image, QString& resultFileName, const ofbx::Textu
     else
     {
         const QString fileName = absoluteDirectoryPath + "/" + relativeFileName;
+
+        if (rawRelativeFileName != relativeFileName)
+        {
+            notes.append(Note(Note::Type::Info, QTranslator::tr("Path \"%1\" converted to \"%2\". Mesh %3, material %4, texture %5")
+                              .arg(rawRelativeFileName, fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr)));
+        }
+
         const QFileInfo fileInfo(fileName);
         if (!fileInfo.exists())
         {
