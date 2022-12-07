@@ -20,7 +20,6 @@ struct Material
     Material(const Type type_)
         : type(type_)
     {}
-    virtual ~Material(){}
 
     Type type = Type::Color;
 
@@ -35,15 +34,6 @@ struct TextureMaterial : public Material
         , fileName(fileName_)
     {}
 
-    virtual ~TextureMaterial() override
-    {
-        if (texture)
-        {
-            delete texture;
-            texture = nullptr;
-        }
-    }
-
     virtual void initializeGL() override
     {
         if (image.isNull())
@@ -52,12 +42,12 @@ struct TextureMaterial : public Material
             return;
         }
 
-        texture = new QOpenGLTexture(image.mirrored());
+        texture = std::shared_ptr<QOpenGLTexture>(new QOpenGLTexture(image.mirrored()));
     }
 
     const QImage image;
     const QString fileName;
-    mutable QOpenGLTexture* texture = nullptr;
+    mutable std::shared_ptr<QOpenGLTexture> texture;
 };
 
 struct ColorMaterial : public Material
@@ -82,7 +72,7 @@ struct VertexAttributeInfo
 
 struct ModelData
 {
-    Material* material = nullptr; // TODO: check
+    std::shared_ptr<Material> material; // TODO: check
 
     QMatrix4x4 sourceMatrix;
 

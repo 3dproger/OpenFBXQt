@@ -60,7 +60,7 @@ Loader::Loader()
 
 }
 
-QList<Model*> Loader::open(const QString &fileName, const OpenModelConfig config_, QList<Note>* notes_)
+QList<std::shared_ptr<Model>> Loader::open(const QString &fileName, const OpenModelConfig config_, QList<Note>* notes_)
 {
     config = config_;
     notes = notes_;
@@ -70,7 +70,7 @@ QList<Model*> Loader::open(const QString &fileName, const OpenModelConfig config
     {
         addNote(Note::Type::Error, QTranslator::tr("Failed to open file \"%1\", error: \"%2\"").arg(fileName, file.errorString()));
         qCritical() << Q_FUNC_INFO << "failed to open file" << fileName << ", error:" << file.errorString();
-        return QList<Model*>();
+        return QList<std::shared_ptr<Model>>();
     }
 
     const QByteArray rawData = file.readAll();
@@ -81,7 +81,7 @@ QList<Model*> Loader::open(const QString &fileName, const OpenModelConfig config
     {
         addNote(Note::Type::Error, QTranslator::tr("No scene"));
         qCritical() << Q_FUNC_INFO << "no scene";
-        return QList<Model*>();
+        return QList<std::shared_ptr<Model>>();
     }
 
     const int meshCount = scene->getMeshCount();
@@ -90,16 +90,16 @@ QList<Model*> Loader::open(const QString &fileName, const OpenModelConfig config
         scene->destroy();
         addNote(Note::Type::Error, QTranslator::tr("No meshes in scene"));
         qCritical() << Q_FUNC_INFO << "no meshes in scene";
-        return QList<Model*>();
+        return QList<std::shared_ptr<Model>>();
     }
 
     const QFileInfo fileInfo(fileName);
     const QString absoluteDirectoryPath = fileInfo.absoluteDir().absolutePath();
 
-    QList<Model*> models;
+    QList<std::shared_ptr<Model>> models;
     for (int i = 0; i < meshCount; ++i)
     {
-        Model* model = loadMesh(scene->getMesh(i), i, absoluteDirectoryPath);
+        std::shared_ptr<Model> model = loadMesh(scene->getMesh(i), i, absoluteDirectoryPath);
         if (model)
         {
             models.append(model);
@@ -260,7 +260,7 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data, QHash<GLuint, Q
     }
 }
 
-Model *Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIndex, const QString& absoluteDirectoryPath)
+std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIndex, const QString& absoluteDirectoryPath)
 {
     if (!mesh)
     {
@@ -301,7 +301,7 @@ Model *Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIndex, const QStri
         return nullptr;
     }
 
-    Material* material = nullptr;
+    std::shared_ptr<Material> material;
 
     if (config.loadMaterial)
     {
@@ -466,10 +466,10 @@ Model *Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIndex, const QStri
 
     ModelDataStorage::data.append(data);
 
-    return new Model(*data);
+    return std::shared_ptr<Model>(new Model(data));
 }
 
-Material *Loader::loadMaterial(const ofbx::Material *rawMaterial, const int meshIndex, const int materialIndex, const QString& absoluteDirectoryPath)
+std::shared_ptr<Material> Loader::loadMaterial(const ofbx::Material *rawMaterial, const int meshIndex, const int materialIndex, const QString& absoluteDirectoryPath)
 {
     if (!rawMaterial)
     {
@@ -478,7 +478,7 @@ Material *Loader::loadMaterial(const ofbx::Material *rawMaterial, const int mesh
         return nullptr;
     }
 
-    Material* material = nullptr;
+    std::shared_ptr<Material> material = nullptr;
 
     if (config.loadMaterialTexture)
     {
@@ -501,7 +501,7 @@ Material *Loader::loadMaterial(const ofbx::Material *rawMaterial, const int mesh
                     QString fileName;
                     if (loadImage(image, fileName, texture, absoluteDirectoryPath, meshIndex, materialIndex, type))
                     {
-                        material = new TextureMaterial(image, fileName);
+                        material = std::shared_ptr<Material>(new TextureMaterial(image, fileName));
                     }
                 }
                     break;
@@ -530,7 +530,7 @@ Material *Loader::loadMaterial(const ofbx::Material *rawMaterial, const int mesh
     {
         if (config.loadMaterialColor)
         {
-            material = new ColorMaterial(covertColor(rawMaterial->getDiffuseColor()));
+            material = std::shared_ptr<Material>(new ColorMaterial(covertColor(rawMaterial->getDiffuseColor())));
         }
     }
 

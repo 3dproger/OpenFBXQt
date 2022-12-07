@@ -17,8 +17,7 @@ public:
 
     friend class Loader;
 
-    Model(ModelData& data);
-    ~Model();
+    Model(std::shared_ptr<ModelData> data);
 
     void initializeGL();
     void paintGL(const QMatrix4x4& projection);
@@ -26,9 +25,9 @@ public:
 private:
     bool initializedGL = false;
 
-    Material* material = nullptr;
+    std::shared_ptr<Material> material;
 
-    const ModelData& data;
+    std::shared_ptr<ModelData> data;
     QMatrix4x4 matrix;
 
     bool needUpdateSkeleton = false;

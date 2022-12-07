@@ -55,25 +55,20 @@ static QList<QColor> spareColors =
     QColor(38, 50, 56),
 };
 
-Model::Model(ModelData& data_)
-    : skeleton(data_.skeleton)
+Model::Model(std::shared_ptr<ModelData> data_)
+    : skeleton(data_->skeleton)
     , data(data_)
 {
+    if (!data)
+    {
+        qCritical() << Q_FUNC_INFO << "data is null";
+    }
+
     if (!shuffledSpareColor)
     {
         shuffledSpareColor = true;
 
         std::random_shuffle(spareColors.begin(), spareColors.end());
-    }
-}
-
-Model::~Model()
-{
-    // TODO: check
-    if (material)
-    {
-        delete material;
-        material = nullptr;
     }
 }
 
@@ -88,9 +83,15 @@ void Model::initializeGL()
 
     initializeOpenGLFunctions();
 
+    if (!data)
+    {
+        qCritical() << Q_FUNC_INFO << "data is null";
+        return;
+    }
+
     if (!material)
     {
-        material = data.material;
+        material = data->material;
     }
 
     if (!material)
@@ -102,14 +103,13 @@ void Model::initializeGL()
                 currentSpareColors = 0;
             }
 
-            ColorMaterial* colorMaterial = new ColorMaterial(spareColors[currentSpareColors]);
-            material = colorMaterial;
+            material = std::shared_ptr<Material>(new ColorMaterial(spareColors[currentSpareColors]));
 
             currentSpareColors++;
         }
         else
         {
-            material = new ColorMaterial(QColor(191, 191, 191));
+            material = std::shared_ptr<Material>(new ColorMaterial(QColor(191, 191, 191)));
             qWarning() << Q_FUNC_INFO << "spare colors is empty. Used default material";
         }
     }
@@ -119,88 +119,88 @@ void Model::initializeGL()
         material->initializeGL();
     }
 
-    if (!data.vertexBuffer.isCreated())
+    if (!data->vertexBuffer.isCreated())
     {
-        if (!data.vertexBuffer.create())
+        if (!data->vertexBuffer.create())
         {
             qCritical() << Q_FUNC_INFO << "failed to create vertex buffer";
         }
 
-        if (!data.vertexBuffer.bind())
+        if (!data->vertexBuffer.bind())
         {
             qCritical() << Q_FUNC_INFO << "failed to bind vertex buffer";
         }
 
-        if (data.vertexData.isEmpty())
+        if (data->vertexData.isEmpty())
         {
             qCritical() << Q_FUNC_INFO << "vertex data is empty";
         }
 
-        if (data.vertexCount <= 0)
+        if (data->vertexCount <= 0)
         {
-            qCritical() << Q_FUNC_INFO << "vertex count is" << data.vertexCount;
+            qCritical() << Q_FUNC_INFO << "vertex count is" << data->vertexCount;
         }
 
-        if (data.vertexStride <= 0)
+        if (data->vertexStride <= 0)
         {
-            qCritical() << Q_FUNC_INFO << "vertex stride is" << data.vertexStride;
+            qCritical() << Q_FUNC_INFO << "vertex stride is" << data->vertexStride;
         }
 
-        data.vertexBuffer.allocate(data.vertexData, data.vertexCount * data.vertexStride);
+        data->vertexBuffer.allocate(data->vertexData, data->vertexCount * data->vertexStride);
 
-        if (data.vertexBuffer.size() <= 0)
+        if (data->vertexBuffer.size() <= 0)
         {
             qWarning() << Q_FUNC_INFO << "vertex buffer is empty";
         }
 
-        data.vertexBuffer.release();
+        data->vertexBuffer.release();
 
-        data.vertexData.clear();
+        data->vertexData.clear();
     }
 
-    if (!data.indexBuffer.isCreated())
+    if (!data->indexBuffer.isCreated())
     {
-        if (!data.indexBuffer.create())
+        if (!data->indexBuffer.create())
         {
             qCritical() << Q_FUNC_INFO << "failed to create index buffer";
         }
 
-        if (!data.indexBuffer.bind())
+        if (!data->indexBuffer.bind())
         {
             qCritical() << Q_FUNC_INFO << "failed to bind index buffer";
         }
 
-        if (data.indexData.isEmpty())
+        if (data->indexData.isEmpty())
         {
             qCritical() << Q_FUNC_INFO << "index data is empty";
         }
 
-        if (data.indexCount <= 0)
+        if (data->indexCount <= 0)
         {
-            qCritical() << Q_FUNC_INFO << "index count is" << data.indexCount;
+            qCritical() << Q_FUNC_INFO << "index count is" << data->indexCount;
         }
 
-        if (data.indexStride <= 0)
+        if (data->indexStride <= 0)
         {
-            qCritical() << Q_FUNC_INFO << "index stride is" << data.indexStride;
+            qCritical() << Q_FUNC_INFO << "index stride is" << data->indexStride;
         }
 
-        data.indexBuffer.allocate(data.indexData, data.indexCount * data.indexStride);
+        data->indexBuffer.allocate(data->indexData, data->indexCount * data->indexStride);
 
-        if (data.indexBuffer.size() <= 0)
+        if (data->indexBuffer.size() <= 0)
         {
             qWarning() << Q_FUNC_INFO << "index buffer is empty";
         }
 
-        data.indexBuffer.release();
+        data->indexBuffer.release();
 
-        data.indexData.clear();
+        data->indexData.clear();
     }
 
-    if (!data.shader.isLinked())
+    if (!data->shader.isLinked())
     {
         QString vshaderFileName;
-        if (data.skeleton.getJoints().count() > 0)
+        if (data->skeleton.getJoints().count() > 0)
         {
             vshaderFileName = ":/OpenFBXQt-shaders/vshader-with-joins.glsl";
         }
@@ -220,17 +220,17 @@ void Model::initializeGL()
             break;
         }
 
-        if (!data.shader.addShaderFromSourceFile(QOpenGLShader::Vertex, vshaderFileName))
+        if (!data->shader.addShaderFromSourceFile(QOpenGLShader::Vertex, vshaderFileName))
         {
             qWarning() << Q_FUNC_INFO << "failed to compile vertex shader";
         }
 
-        if (!data.shader.addShaderFromSourceFile(QOpenGLShader::Fragment, fshaderFileName))
+        if (!data->shader.addShaderFromSourceFile(QOpenGLShader::Fragment, fshaderFileName))
         {
             qWarning() << Q_FUNC_INFO << "failed to compile fragment shader";
         }
 
-        if (!data.shader.link())
+        if (!data->shader.link())
         {
             qWarning() << Q_FUNC_INFO << "failed to link shader";
         }
@@ -239,7 +239,13 @@ void Model::initializeGL()
 
 void Model::paintGL(const QMatrix4x4 &projection)
 {
-    if (!data.shader.isLinked())
+    if (!data)
+    {
+        qCritical() << Q_FUNC_INFO << "data is null";
+        return;
+    }
+
+    if (!data->shader.isLinked())
     {
 #ifdef QT_DEBUG
         qCritical() << Q_FUNC_INFO << "shader not linked";
@@ -261,10 +267,10 @@ void Model::paintGL(const QMatrix4x4 &projection)
     switch(material->type)
     {
     case ofbxqt::Material::Type::Color:
-        colorMaterial = static_cast<const ColorMaterial*>(material);
+        colorMaterial = static_cast<const ColorMaterial*>(material.get());
         break;
     case ofbxqt::Material::Type::Image:
-        textureMaterial = static_cast<const TextureMaterial*>(material);
+        textureMaterial = static_cast<const TextureMaterial*>(material.get());
         if (textureMaterial->texture)
         {
             textureMaterial->texture->bind();
@@ -278,7 +284,7 @@ void Model::paintGL(const QMatrix4x4 &projection)
         break;
     }
 
-    if (!data.shader.bind())
+    if (!data->shader.bind())
     {
 #ifdef QT_DEBUG
         qCritical() << Q_FUNC_INFO << "failed to bind shader";
@@ -286,19 +292,19 @@ void Model::paintGL(const QMatrix4x4 &projection)
     }
 
     QVector3D v(0, 0, 0);
-    v = v.unproject(matrix * data.sourceMatrix, projection, QRect(0, 0, 1, 1));
+    v = v.unproject(matrix * data->sourceMatrix, projection, QRect(0, 0, 1, 1));
 
-    data.shader.setUniformValue("projection_pos", v);
-    data.shader.setUniformValue("model_projection_matrix", projection * matrix * data.sourceMatrix);
+    data->shader.setUniformValue("projection_pos", v);
+    data->shader.setUniformValue("model_projection_matrix", projection * matrix * data->sourceMatrix);
     if (material->type == Material::Type::Image)
     {
-        data.shader.setUniformValue("texture", 0);
+        data->shader.setUniformValue("texture", 0);
     }
     else if (material->type == Material::Type::Color)
     {
         if (colorMaterial)
         {
-            data.shader.setUniformValue("u_color", colorMaterial->color);
+            data->shader.setUniformValue("u_color", colorMaterial->color);
         }
         else
         {
@@ -317,15 +323,15 @@ void Model::paintGL(const QMatrix4x4 &projection)
     const QVector<QMatrix4x4>& matrices = skeleton.jointsResultMatrices;
     if (matrices.count() > 0)
     {
-        data.shader.setUniformValueArray("joints", matrices.data(), matrices.count());
+        data->shader.setUniformValueArray("joints", matrices.data(), matrices.count());
     }
 
-    data.vertexBuffer.bind();
-    data.indexBuffer.bind();
+    data->vertexBuffer.bind();
+    data->indexBuffer.bind();
 
-    for (const VertexAttributeInfo& attribute : qAsConst(data.vertexAttributes))
+    for (const VertexAttributeInfo& attribute : qAsConst(data->vertexAttributes))
     {
-        const int location = data.shader.attributeLocation(attribute.nameForShader);
+        const int location = data->shader.attributeLocation(attribute.nameForShader);
         if (location == -1)
         {
 #ifdef QT_DEBUG
@@ -334,21 +340,21 @@ void Model::paintGL(const QMatrix4x4 &projection)
             continue;
         }
 
-        data.shader.enableAttributeArray(location);
-        data.shader.setAttributeBuffer(location, attribute.type, attribute.offset, attribute.tupleSize, data.vertexStride);
+        data->shader.enableAttributeArray(location);
+        data->shader.setAttributeBuffer(location, attribute.type, attribute.offset, attribute.tupleSize, data->vertexStride);
     }
 
-    glDrawElements(data.drawElementsMode, data.indexCount, data.indexType, nullptr);
+    glDrawElements(data->drawElementsMode, data->indexCount, data->indexType, nullptr);
 
-    data.shader.release();
+    data->shader.release();
 
     if (material->type == Material::Type::Image && textureMaterial && textureMaterial->texture)
     {
         textureMaterial->texture->release();
     }
 
-    data.vertexBuffer.release();
-    data.indexBuffer.release();
+    data->vertexBuffer.release();
+    data->indexBuffer.release();
 }
 
 }

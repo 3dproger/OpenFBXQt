@@ -30,7 +30,7 @@ void Scene::initializeGL()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
 
-    for (Model* model : qAsConst(models))
+    for (std::shared_ptr<Model> model : qAsConst(models))
     {
         model->initializeGL();
     }
@@ -42,7 +42,7 @@ void Scene::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (Model* model : qAsConst(models))
+    for (std::shared_ptr<Model> model : qAsConst(models))
     {
         model->paintGL(perspective * projection);
     }
@@ -77,7 +77,7 @@ QMatrix4x4 Scene::getProjection() const
     return projection;
 }
 
-void Scene::addModel(Model *model)
+void Scene::addModel(std::shared_ptr<Model> model)
 {
     if (!model)
     {
@@ -93,11 +93,11 @@ void Scene::addModel(Model *model)
     models.append(model);
 }
 
-QList<Model*> Scene::open(const QString &fileName, const OpenModelConfig config, QList<ofbxqt::Note>* notes)
+QList<std::shared_ptr<Model>> Scene::open(const QString &fileName, const OpenModelConfig config, QList<ofbxqt::Note>* notes)
 {
-    QList<Model*> models = Loader().open(fileName, config, notes);
+    QList<std::shared_ptr<Model>> models = Loader().open(fileName, config, notes);
 
-    for (ofbxqt::Model* model : qAsConst(models))
+    for (std::shared_ptr<Model> model : qAsConst(models))
     {
         addModel(model);
     }
@@ -112,12 +112,7 @@ QList<Model*> Scene::open(const QString &fileName, const OpenModelConfig config,
 
 void Scene::clear()
 {
-    for (Model* model : qAsConst(models))
-    {
-        delete model;
-    }
     models.clear();
-
     ModelDataStorage::data.clear();
 
     if (onNeedUpdateCallback)
