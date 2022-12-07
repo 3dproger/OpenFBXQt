@@ -5,9 +5,6 @@
 namespace ofbxqt
 {
 
-class Loader;
-class Model;
-
 class Armature
 {
 public:

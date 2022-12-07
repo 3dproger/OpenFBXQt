@@ -8,12 +8,10 @@
 namespace ofbxqt
 {
 
-class Loader;
-
 class Model : protected QOpenGLFunctions
 {
 public:
-    Armature armature;
+    std::shared_ptr<Armature> armature;
 
     friend class Loader;
 

@@ -121,7 +121,7 @@ void Model::initializeGL()
     if (!data->shader.isLinked())
     {
         QString vshaderFileName;
-        if (data->armature.getJoints().count() > 0)
+        if (data->armature)
         {
             vshaderFileName = ":/OpenFBXQt-shaders/vshader-with-joins.glsl";
         }
@@ -232,14 +232,25 @@ void Model::paintGL(const QMatrix4x4 &projection)
 
     if (needUpdateArmature)
     {
-        armature.update();
+        if (armature)
+        {
+            armature->update();
+        }
+        else
+        {
+            qCritical() << Q_FUNC_INFO << "armature is null";
+        }
+
         needUpdateArmature = false;
     }
 
-    const QVector<QMatrix4x4>& matrices = armature.jointsResultMatrices;
-    if (matrices.count() > 0)
+    if (armature)
     {
-        data->shader.setUniformValueArray("joints", matrices.data(), matrices.count());
+        const QVector<QMatrix4x4>& matrices = armature->jointsResultMatrices;
+        if (matrices.count() > 0)
+        {
+            data->shader.setUniformValueArray("joints", matrices.data(), matrices.count());
+        }
     }
 
     data->vertexBuffer.bind();

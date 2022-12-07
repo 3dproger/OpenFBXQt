@@ -3,6 +3,7 @@
 #include <QDebug>
 #include <QFileDialog>
 #include <QLabel>
+#include <QSlider>
 
 namespace
 {
@@ -164,14 +165,18 @@ void MainWindow::updateSceneTree()
         modelItem->setData(0, ItemTypeRole, (int)ItemType::Model);
         modelItem->setData(0, ItemPointerRole, (uint64_t)model.get());
 
-        if (model->armature.getRootJoint())
+        if (model->armature)
         {
             QTreeWidgetItem* armatureItem = new QTreeWidgetItem({ tr("Armature")});
             armatureItem->setIcon(0, armatureIcon);
             armatureItem->setData(0, ItemTypeRole, (int)ItemType::Armature);
             armatureItem->setData(0, ItemPointerRole, (uint64_t)&model->armature);
 
-            fillJointItem(*armatureItem, { model->armature.getRootJoint() });
+            const std::shared_ptr<ofbxqt::Joint> joint = model->armature->getRootJoint();
+            if (joint)
+            {
+                fillJointItem(*armatureItem, { joint });
+            }
 
             modelItem->addChild(armatureItem);
         }
@@ -202,7 +207,7 @@ void MainWindow::on_sceneTree_currentItemChanged(QTreeWidgetItem*, QTreeWidgetIt
 
 void MainWindow::updateInspector()
 {
-    QGridLayout& layout = *ui->inspectorLayout;
+    QVBoxLayout& layout = *ui->inspectorLayout;
     clearLayout(layout);
 
     QTreeWidgetItem* item = ui->sceneTree->currentItem();
@@ -238,11 +243,18 @@ void MainWindow::updateInspector()
     {
         ofbxqt::Joint* joint = (ofbxqt::Joint*)object;
         layout.addWidget(new QLabel(joint->getName(), this));
+
+        QSlider* slider = new QSlider(Qt::Orientation::Horizontal, this);
+        layout.addWidget(slider);
+        QObject::connect(slider, &QSlider::valueChanged, this, [joint](int value)
+        {
+            joint->setRotation(QQuaternion::fromAxisAndAngle(QVector3D(1, 0, 0), value));
+        });
     }
     else
     {
         qCritical() << Q_FUNC_INFO << "unknown item type" << (int)itemType;
     }
 
-    layout.addItem(new QSpacerItem(10, 10, QSizePolicy::Minimum, QSizePolicy::MinimumExpanding), layout.rowCount(), 0);
+    layout.addItem(new QSpacerItem(10, 10, QSizePolicy::Minimum, QSizePolicy::MinimumExpanding));
 }

@@ -192,6 +192,8 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data, QHash<GLuint, Q
         return;
     }
 
+    data.armature = std::shared_ptr<Armature>(new Armature());
+
     int jointIndex = 0;
 
     std::map<std::shared_ptr<Joint>, const ofbx::Cluster*> clustersByJoints;
@@ -199,10 +201,11 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data, QHash<GLuint, Q
     std::shared_ptr<Joint> rootJoint = std::shared_ptr<Joint>(new Joint("root", jointIndex++, QMatrix4x4()));
 
     clustersByJoints[rootJoint] = nullptr;
-    data.armature.jointsResultMatrices.append(QMatrix4x4());
-    data.armature.jointsByName.insert(rootJoint->getName(), data.armature.joints.count());
-    data.armature.joints.append(rootJoint);
-    data.armature.rootJoint = rootJoint;
+    data.armature->jointsResultMatrices.append(QMatrix4x4());
+    data.armature->jointsByName.insert(rootJoint->getName(), data.armature->joints.count());
+    data.armature->joints.append(rootJoint);
+    data.armature->rootJoint = rootJoint;
+    rootJoint->armature = data.armature;
 
     QHash<const ofbx::Object*, std::shared_ptr<Joint>> objectsJoints;
 
@@ -225,14 +228,15 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data, QHash<GLuint, Q
         }
 
         std::shared_ptr<Joint> joint = std::shared_ptr<Joint>(new Joint(object->name, jointIndex++, convertMatrix4x4(cluster->getTransformMatrix())));
+        joint->armature = data.armature;
 
         clustersByJoints[joint] = cluster;
-        data.armature.jointsResultMatrices.append(QMatrix4x4());
+        data.armature->jointsResultMatrices.append(QMatrix4x4());
 
         objectsJoints.insert(object, joint);
 
         QString name = joint->getName();
-        if (data.armature.jointsByName.contains(name))
+        if (data.armature->jointsByName.contains(name))
         {
             const QString newName = name + "_1";
 
@@ -244,8 +248,8 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data, QHash<GLuint, Q
             name = newName;
         }
 
-        data.armature.jointsByName.insert(name, data.armature.joints.count());
-        data.armature.joints.append(joint);
+        data.armature->jointsByName.insert(name, data.armature->joints.count());
+        data.armature->joints.append(joint);
     }
 
     const auto keys = objectsJoints.keys();
@@ -272,7 +276,7 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data, QHash<GLuint, Q
         }
     }
 
-    for (std::shared_ptr<Joint> joint : qAsConst(data.armature.joints))
+    for (std::shared_ptr<Joint> joint : qAsConst(data.armature->joints))
     {
         if (clustersByJoints.find(joint) == clustersByJoints.end())
         {
@@ -427,7 +431,7 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
         addVertexAttributeGLfloat(*data, "a_texcoord", 2);
     }
 
-    if (data->armature.getJoints().count() > 0)
+    if (data->armature)
     {
         addVertexAttributeGLfloat(*data, "a_joint_weights", 4);
         addVertexAttributeGLfloat(*data, "a_joint_indices", 4);
@@ -457,7 +461,7 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
             rawVertexArray[idx++] = (GLfloat)texcoord[vertexIndex].y;
         }
 
-        if (data->armature.getJoints().count() > 0)
+        if (data->armature)
         {
             if (jointsData.contains(vertexIndex))
             {
@@ -541,7 +545,10 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
         qWarning() << Q_FUNC_INFO << "rawIndex less than zero but i == 0";
     }
 
-    data->armature.update();
+    if (data->armature)
+    {
+        data->armature->update();
+    }
 
     ModelDataStorage::data.append(data);
 

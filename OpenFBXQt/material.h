@@ -7,9 +7,6 @@
 namespace ofbxqt
 {
 
-class Loader;
-class Model;
-
 class TextureInfo
 {
 public:

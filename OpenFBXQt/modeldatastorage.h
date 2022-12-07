@@ -23,7 +23,8 @@ struct VertexAttributeInfo
 
 struct ModelData
 {
-    std::shared_ptr<Material> material; // TODO: check
+    std::shared_ptr<Material> material;
+    std::shared_ptr<Armature> armature;
 
     QMatrix4x4 sourceMatrix;
 
@@ -43,8 +44,6 @@ struct ModelData
     mutable QOpenGLBuffer indexBuffer = QOpenGLBuffer(QOpenGLBuffer::IndexBuffer);
 
     mutable QOpenGLShaderProgram shader; // TODO: move to shaders storage
-
-    Armature armature;
 };
 
 class ModelDataStorage

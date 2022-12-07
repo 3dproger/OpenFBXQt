@@ -7,6 +7,8 @@
 namespace ofbxqt
 {
 
+class Armature;
+
 class Joint
 {
 public:
@@ -31,6 +33,7 @@ private:
     QQuaternion rotation;
     QMatrix4x4 localTransformation;
 
+    std::weak_ptr<Armature> armature;
     std::weak_ptr<Joint> parent;
     QVector<std::shared_ptr<Joint>> children;
 };
