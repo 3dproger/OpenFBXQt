@@ -584,6 +584,13 @@ void Loader::loadMaterial(const ofbx::Material *rawMaterial, std::shared_ptr<Mat
                 break;
 
             case ofbx::Texture::NORMAL:
+                isSupportedTextureType = true;
+                if (config.loadNormalTexture)
+                {
+                    loadTexture(rawTexture, material->normalTexture, absoluteDirectoryPath, meshIndex, materialIndex, type);
+                }
+                break;
+
             case ofbx::Texture::SPECULAR:
             case ofbx::Texture::SHININESS:
             case ofbx::Texture::AMBIENT:
@@ -672,7 +679,7 @@ void Loader::loadTexture(const ofbx::Texture* rawTexture, std::shared_ptr<Textur
     textureInfo = std::shared_ptr<TextureInfo>(new TextureInfo(image, fileName));
 
     addNote(Note::Type::Info, QTranslator::tr("Opened %1 texture \"%2\". Mesh %3, material %4, texture %5")
-                      .arg(textureTypeStr).arg(fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr));
+                      .arg(textureTypeStr, fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr));
 }
 
 void Loader::addVertexAttributeGLfloat(ModelData& data, const QString &nameForShader, const int tupleSize)
