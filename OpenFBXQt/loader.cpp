@@ -293,23 +293,27 @@ Model *Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIndex, const QStri
         return nullptr;
     }
 
-    const int materialsCount = mesh->getMaterialCount();
-    if (materialsCount > 1)
-    {
-        addNote(Note::Type::Warning, QTranslator::tr("Only one material supported but found %1. Mesh %2")
-                          .arg(materialsCount).arg(meshIndex));
-        qWarning() << Q_FUNC_INFO << "only one material supported but found" << materialsCount << ". Mesh" << meshIndex;
-    }
-
     Material* material = nullptr;
-    if (materialsCount > 0)
+
+    if (config.loadMaterial)
     {
-        material = loadMaterial(mesh->getMaterial(0), meshIndex, 0, absoluteDirectoryPath);
-    }
-    else
-    {
-        addNote(Note::Type::Warning, QTranslator::tr("No materials. Mesh %1").arg(meshIndex));
-        qWarning() << Q_FUNC_INFO << "no materials. Mesh" << meshIndex;
+        const int materialsCount = mesh->getMaterialCount();
+        if (materialsCount > 1)
+        {
+            addNote(Note::Type::Warning, QTranslator::tr("Only one material supported but found %1. Mesh %2")
+                              .arg(materialsCount).arg(meshIndex));
+            qWarning() << Q_FUNC_INFO << "only one material supported but found" << materialsCount << ". Mesh" << meshIndex;
+        }
+
+        if (materialsCount > 0)
+        {
+            material = loadMaterial(mesh->getMaterial(0), meshIndex, 0, absoluteDirectoryPath);
+        }
+        else
+        {
+            addNote(Note::Type::Warning, QTranslator::tr("No materials. Mesh %1").arg(meshIndex));
+            qWarning() << Q_FUNC_INFO << "no materials. Mesh" << meshIndex;
+        }
     }
 
     ModelData* data = new ModelData();
@@ -468,52 +472,58 @@ Material *Loader::loadMaterial(const ofbx::Material *rawMaterial, const int mesh
 
     Material* material = nullptr;
 
-    for (int i = 0; i < (int)ofbx::Texture::TextureType::COUNT; ++i)
+    if (config.loadMaterialTexture)
     {
-        const ofbx::Texture::TextureType type = (ofbx::Texture::TextureType)i;
-        const QString textureTypeStr = textureTypeToString(type);
-
-        const ofbx::Texture* texture = rawMaterial->getTexture(type);
-        if (texture)
+        for (int i = 0; i < (int)ofbx::Texture::TextureType::COUNT; ++i)
         {
-            bool isSupportedTextureType = false;
-            switch (type)
-            {
-            case ofbx::Texture::DIFFUSE:
-            {
-                isSupportedTextureType = true;
+            const ofbx::Texture::TextureType type = (ofbx::Texture::TextureType)i;
+            const QString textureTypeStr = textureTypeToString(type);
 
-                QImage image;
-                QString fileName;
-                if (loadImage(image, fileName, texture, absoluteDirectoryPath, meshIndex, materialIndex, type))
+            const ofbx::Texture* texture = rawMaterial->getTexture(type);
+            if (texture)
+            {
+                bool isSupportedTextureType = false;
+                switch (type)
                 {
-                    material = new TextureMaterial(image, fileName);
+                case ofbx::Texture::DIFFUSE:
+                {
+                    isSupportedTextureType = true;
+
+                    QImage image;
+                    QString fileName;
+                    if (loadImage(image, fileName, texture, absoluteDirectoryPath, meshIndex, materialIndex, type))
+                    {
+                        material = new TextureMaterial(image, fileName);
+                    }
                 }
-            }
-                break;
+                    break;
 
-            case ofbx::Texture::NORMAL:
-            case ofbx::Texture::SPECULAR:
-            case ofbx::Texture::SHININESS:
-            case ofbx::Texture::AMBIENT:
-            case ofbx::Texture::EMISSIVE:
-            case ofbx::Texture::REFLECTION:
-            case ofbx::Texture::COUNT:
-                break;
-            }
+                case ofbx::Texture::NORMAL:
+                case ofbx::Texture::SPECULAR:
+                case ofbx::Texture::SHININESS:
+                case ofbx::Texture::AMBIENT:
+                case ofbx::Texture::EMISSIVE:
+                case ofbx::Texture::REFLECTION:
+                case ofbx::Texture::COUNT:
+                    break;
+                }
 
-            if (!isSupportedTextureType)
-            {
-                addNote(Note::Type::Warning, QTranslator::tr("Texture type \"%1\" not supported. Mesh %2, material %3")
-                                  .arg(textureTypeStr).arg(meshIndex).arg(materialIndex));
-                qWarning() << Q_FUNC_INFO << "texture type" << textureTypeStr << "not supported";
+                if (!isSupportedTextureType)
+                {
+                    addNote(Note::Type::Warning, QTranslator::tr("Texture type \"%1\" not supported. Mesh %2, material %3")
+                                      .arg(textureTypeStr).arg(meshIndex).arg(materialIndex));
+                    qWarning() << Q_FUNC_INFO << "texture type" << textureTypeStr << "not supported";
+                }
             }
         }
     }
 
     if (!material)
     {
-        material = new ColorMaterial(covertColor(rawMaterial->getDiffuseColor()));
+        if (config.loadMaterialColor)
+        {
+            material = new ColorMaterial(covertColor(rawMaterial->getDiffuseColor()));
+        }
     }
 
     return material;

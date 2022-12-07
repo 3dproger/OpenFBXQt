@@ -7,9 +7,9 @@ namespace ofbxqt
 
 struct OpenModelConfig
 {
-    bool openMaterial = true;
-    bool openMaterialTexture = true;
-    bool openMaterialColor = true;
+    bool loadMaterial = true;
+    bool loadMaterialTexture = true;
+    bool loadMaterialColor = true;
 };
 
 class Note
