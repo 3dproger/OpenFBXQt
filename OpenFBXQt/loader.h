@@ -14,7 +14,7 @@ class Loader
 public:
     Loader();
 
-    QList<std::shared_ptr<Model>> open(const QString& fileName, const OpenModelConfig config = OpenModelConfig(), QList<Note>* notes = nullptr);
+    QVector<std::shared_ptr<Model>> open(const QString& fileName, const OpenModelConfig config = OpenModelConfig(), QList<Note>* notes = nullptr);
 
 private:
     void addNote(const Note::Type type, const QString& text);

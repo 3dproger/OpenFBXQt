@@ -22,7 +22,7 @@ public:
 
 private:
     Joint(const QString& name, const GLuint index, const QMatrix4x4& inverseBindMatrix);
-    void addChild(Joint* joint);
+    void addChild(std::shared_ptr<Joint> joint);
 
     QString name;
     GLuint index = 0;
@@ -31,8 +31,8 @@ private:
     QQuaternion rotation;
     QMatrix4x4 localTransformation;
 
-    Joint* parent = nullptr;
-    QHash<QString, Joint*> children;
+    std::weak_ptr<Joint> parent;
+    QVector<std::shared_ptr<Joint>> children;
 };
 
 }

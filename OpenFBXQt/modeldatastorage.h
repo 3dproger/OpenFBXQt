@@ -2,7 +2,6 @@
 
 #include "skeleton.h"
 #include <QString>
-#include <QList>
 #include <QOpenGLBuffer>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
@@ -106,7 +105,7 @@ public:
 private:
     ModelDataStorage(){}
 
-    inline static QList<std::shared_ptr<ModelData>> data = QList<std::shared_ptr<ModelData>>(); // TODO: move to Scene
+    inline static QVector<std::shared_ptr<ModelData>> data = QVector<std::shared_ptr<ModelData>>(); // move to scene, make non static
 };
 
 }

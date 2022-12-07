@@ -19,22 +19,15 @@ Joint::Joint(const QString& name_, const GLuint index_, const QMatrix4x4 &invers
 
 }
 
-void Joint::addChild(Joint *joint)
+void Joint::addChild(std::shared_ptr<Joint> joint)
 {
     if (!joint)
     {
-        qCritical() << "child joint is nullptr";
+        qCritical() << "child joint is null";
         return;
     }
 
-    if (joint->name.isEmpty())
-    {
-        qWarning() << "child name is empty";
-    }
-
-    joint->parent = this;
-
-    children.insert(joint->name, joint);
+    children.append(joint);
 }
 
 }

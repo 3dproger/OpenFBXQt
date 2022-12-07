@@ -14,22 +14,19 @@ public:
     friend class Loader;
     friend class Model;
 
-    Skeleton();
-    ~Skeleton();
-
     void update();
 
-    const QVector<Joint*>& getJoints() const;
-    Joint* getRootJoint();
-    Joint* getJointByName(const QString& name);
+    const QVector<std::shared_ptr<Joint>>& getJoints() const;
+    std::shared_ptr<Joint> getRootJoint();
+    std::shared_ptr<Joint> getJointByName(const QString& name);
 
 private:
-    void update(Joint* joint, const QMatrix4x4& parentMatrix = QMatrix4x4());
+    void update(std::shared_ptr<Joint>, const QMatrix4x4& parentMatrix = QMatrix4x4());
 
-    Joint* rootJoint = nullptr;
+    std::shared_ptr<Joint> rootJoint;
     QVector<QMatrix4x4> jointsResultMatrices;
-    QHash<QString, Joint*> jointsByName;
-    QVector<Joint*> joints;
+    QHash<QString, int> jointsByName; // <name, index>
+    QVector<std::shared_ptr<Joint>> joints;
 };
 
 }

@@ -93,9 +93,9 @@ void Scene::addModel(std::shared_ptr<Model> model)
     models.append(model);
 }
 
-QList<std::shared_ptr<Model>> Scene::open(const QString &fileName, const OpenModelConfig config, QList<ofbxqt::Note>* notes)
+QVector<std::shared_ptr<Model>> Scene::open(const QString &fileName, const OpenModelConfig config, QList<ofbxqt::Note>* notes)
 {
-    QList<std::shared_ptr<Model>> models = Loader().open(fileName, config, notes);
+    QVector<std::shared_ptr<Model>> models = Loader().open(fileName, config, notes);
 
     for (std::shared_ptr<Model> model : qAsConst(models))
     {

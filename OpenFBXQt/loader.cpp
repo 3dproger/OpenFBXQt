@@ -60,7 +60,7 @@ Loader::Loader()
 
 }
 
-QList<std::shared_ptr<Model>> Loader::open(const QString &fileName, const OpenModelConfig config_, QList<Note>* notes_)
+QVector<std::shared_ptr<Model>> Loader::open(const QString &fileName, const OpenModelConfig config_, QList<Note>* notes_)
 {
     config = config_;
     notes = notes_;
@@ -70,7 +70,7 @@ QList<std::shared_ptr<Model>> Loader::open(const QString &fileName, const OpenMo
     {
         addNote(Note::Type::Error, QTranslator::tr("Failed to open file \"%1\", error: \"%2\"").arg(fileName, file.errorString()));
         qCritical() << Q_FUNC_INFO << "failed to open file" << fileName << ", error:" << file.errorString();
-        return QList<std::shared_ptr<Model>>();
+        return QVector<std::shared_ptr<Model>>();
     }
 
     const QByteArray rawData = file.readAll();
@@ -81,7 +81,7 @@ QList<std::shared_ptr<Model>> Loader::open(const QString &fileName, const OpenMo
     {
         addNote(Note::Type::Error, QTranslator::tr("No scene"));
         qCritical() << Q_FUNC_INFO << "no scene";
-        return QList<std::shared_ptr<Model>>();
+        return QVector<std::shared_ptr<Model>>();
     }
 
     const int meshCount = scene->getMeshCount();
@@ -90,13 +90,13 @@ QList<std::shared_ptr<Model>> Loader::open(const QString &fileName, const OpenMo
         scene->destroy();
         addNote(Note::Type::Error, QTranslator::tr("No meshes in scene"));
         qCritical() << Q_FUNC_INFO << "no meshes in scene";
-        return QList<std::shared_ptr<Model>>();
+        return QVector<std::shared_ptr<Model>>();
     }
 
     const QFileInfo fileInfo(fileName);
     const QString absoluteDirectoryPath = fileInfo.absoluteDir().absolutePath();
 
-    QList<std::shared_ptr<Model>> models;
+    QVector<std::shared_ptr<Model>> models;
     for (int i = 0; i < meshCount; ++i)
     {
         std::shared_ptr<Model> model = loadMesh(scene->getMesh(i), i, absoluteDirectoryPath);
@@ -138,17 +138,17 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data, QHash<GLuint, Q
 
     int jointIndex = 0;
 
-    QHash<Joint*, const ofbx::Cluster*> clustersByJoints;
+    std::map<std::shared_ptr<Joint>, const ofbx::Cluster*> clustersByJoints;
 
-    Joint* rootJoint = new Joint("root", jointIndex++, QMatrix4x4());
+    std::shared_ptr<Joint> rootJoint = std::shared_ptr<Joint>(new Joint("root", jointIndex++, QMatrix4x4()));
 
-    clustersByJoints.insert(rootJoint, nullptr);
+    clustersByJoints[rootJoint] = nullptr;
     data.skeleton.jointsResultMatrices.append(QMatrix4x4());
+    data.skeleton.jointsByName.insert(rootJoint->getName(), data.skeleton.joints.count());
     data.skeleton.joints.append(rootJoint);
-    data.skeleton.jointsByName.insert(rootJoint->getName(), rootJoint);
     data.skeleton.rootJoint = rootJoint;
 
-    QHash<const ofbx::Object*, Joint*> objectsJoints;
+    QHash<const ofbx::Object*, std::shared_ptr<Joint>> objectsJoints;
 
     for (int clusterNum = 0; clusterNum < skin->getClusterCount(); ++clusterNum)
     {
@@ -168,15 +168,14 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data, QHash<GLuint, Q
             continue;
         }
 
-        Joint* joint = new Joint(object->name, jointIndex++, convertMatrix4x4(cluster->getTransformMatrix()));
+        std::shared_ptr<Joint> joint = std::shared_ptr<Joint>(new Joint(object->name, jointIndex++, convertMatrix4x4(cluster->getTransformMatrix())));
 
-        clustersByJoints.insert(joint, cluster);
+        clustersByJoints[joint] = cluster;
         data.skeleton.jointsResultMatrices.append(QMatrix4x4());
 
         objectsJoints.insert(object, joint);
-        data.skeleton.joints.append(joint);
 
-        const QString name = joint->getName();
+        QString name = joint->getName();
         if (data.skeleton.jointsByName.contains(name))
         {
             const QString newName = name + "_1";
@@ -185,18 +184,18 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data, QHash<GLuint, Q
                     .arg(name, newName));
 
             qWarning() << Q_FUNC_INFO << "found a joint with an already existing name. Joint" << name << "renamed to" << newName;
-            data.skeleton.jointsByName.insert(newName, joint);
+
+            name = newName;
         }
-        else
-        {
-            data.skeleton.jointsByName.insert(joint->getName(), joint);
-        }
+
+        data.skeleton.jointsByName.insert(name, data.skeleton.joints.count());
+        data.skeleton.joints.append(joint);
     }
 
     const auto keys = objectsJoints.keys();
     for (const ofbx::Object* object : qAsConst(keys))
     {
-        Joint* joint = objectsJoints[object];
+        std::shared_ptr<Joint> joint = objectsJoints[object];
         bool addedToParent = false;
 
         const ofbx::Object* parent = object->getParent();
@@ -204,8 +203,9 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data, QHash<GLuint, Q
         {
             if (objectsJoints.contains(parent))
             {
-                Joint* parentJoint = objectsJoints[parent];
+                std::shared_ptr<Joint> parentJoint = objectsJoints[parent];
                 parentJoint->addChild(joint);
+                joint->parent = parentJoint;
                 addedToParent = true;
             }
         }
@@ -216,16 +216,16 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data, QHash<GLuint, Q
         }
     }
 
-    for (Joint* joint : qAsConst(data.skeleton.joints))
+    for (std::shared_ptr<Joint> joint : qAsConst(data.skeleton.joints))
     {
-        if (!clustersByJoints.contains(joint))
+        if (clustersByJoints.find(joint) == clustersByJoints.end())
         {
             addNote(Note::Type::Error, QTranslator::tr("No cluster for joint \"%1\"").arg(joint->getName()));
             qCritical() << Q_FUNC_INFO << QString("no cluster for joint \"%1\"").arg(joint->getName());
             continue;
         }
 
-        const ofbx::Cluster* cluster = clustersByJoints.value(joint);
+        const ofbx::Cluster* cluster = clustersByJoints[joint];
         if (!cluster)
         {
             // cluster is null for root

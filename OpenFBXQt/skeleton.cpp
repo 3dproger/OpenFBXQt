@@ -3,20 +3,6 @@
 namespace ofbxqt
 {
 
-Skeleton::Skeleton()
-{
-
-}
-
-Skeleton::~Skeleton()
-{
-    for (Joint* joint : qAsConst(joints))
-    {
-        delete joint;
-    }
-    joints.clear();
-}
-
 void Skeleton::update()
 {
     if (!rootJoint)
@@ -27,22 +13,34 @@ void Skeleton::update()
     update(rootJoint);
 }
 
-const QVector<Joint*> &Skeleton::getJoints() const
+const QVector<std::shared_ptr<Joint>> &Skeleton::getJoints() const
 {
     return joints;
 }
 
-Joint *Skeleton::getRootJoint()
+std::shared_ptr<Joint> Skeleton::getRootJoint()
 {
     return rootJoint;
 }
 
-Joint *Skeleton::getJointByName(const QString &name)
+std::shared_ptr<Joint> Skeleton::getJointByName(const QString &name)
 {
-    return jointsByName.value(name);
+    const int index = jointsByName.value(name, -1);
+    if (index == -1)
+    {
+        return nullptr;
+    }
+
+    if (index >= joints.count())
+    {
+        qCritical() << Q_FUNC_INFO << "index out of bound";
+        return nullptr;
+    }
+
+    return joints[index];
 }
 
-void Skeleton::update(Joint *joint, const QMatrix4x4 &parentMatrix)
+void Skeleton::update(std::shared_ptr<Joint> joint, const QMatrix4x4 &parentMatrix)
 {
     if (!joint)
     {
@@ -54,7 +52,7 @@ void Skeleton::update(Joint *joint, const QMatrix4x4 &parentMatrix)
 
     jointsResultMatrices[joint->index] = matrix;
 
-    for (Joint* child : qAsConst(joint->children))
+    for (std::shared_ptr<Joint> child : qAsConst(joint->children))
     {
         update(child, matrix);
     }

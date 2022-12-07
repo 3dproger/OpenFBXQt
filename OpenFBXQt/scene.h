@@ -23,7 +23,7 @@ public:
     void setProjection(const QMatrix4x4& matrix);
     QMatrix4x4 getProjection() const;
 
-    QList<std::shared_ptr<Model>> open(const QString& fileName, const OpenModelConfig config = OpenModelConfig(), QList<ofbxqt::Note>* notes = nullptr);
+    QVector<std::shared_ptr<Model>> open(const QString& fileName, const OpenModelConfig config = OpenModelConfig(), QList<ofbxqt::Note>* notes = nullptr);
     void clear();
 
     void paintGL();
@@ -42,7 +42,7 @@ private:
     qreal maxFps = 60;
 
     QColor backgroundColor = QColor(64, 64, 64);
-    QList<std::shared_ptr<Model>> models;
+    QVector<std::shared_ptr<Model>> models;
     QMatrix4x4 perspective;
     QMatrix4x4 projection;
 };
