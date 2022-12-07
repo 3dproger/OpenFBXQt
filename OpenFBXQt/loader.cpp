@@ -553,7 +553,10 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
     ModelDataStorage::data.append(data);
     std::shared_ptr<Model> model(new Model(data));
 
-    model->armature->model = model;
+    if (model->armature)
+    {
+        model->armature->model = model;
+    }
 
     return model;
 }
