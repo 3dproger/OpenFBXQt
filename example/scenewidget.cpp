@@ -7,6 +7,12 @@ SceneWidget::SceneWidget(QWidget *parent)
     updateProjection();
 }
 
+void SceneWidget::resetCamera()
+{
+    camera = Camera();
+    updateProjection();
+}
+
 void SceneWidget::mousePressEvent(QMouseEvent *event)
 {
     if (!event)
@@ -42,19 +48,19 @@ void SceneWidget::mouseMoveEvent(QMouseEvent *event)
     if (event->buttons().testFlag(Qt::MouseButton::LeftButton))
     {
         const float deltaX = (event->globalPos().x() - prevMousePos.x()) * mouseRotationSensitivity.x();
-        cameraYaw += deltaX;
+        camera.yaw += deltaX;
 
         const float deltaY = (event->globalPos().y() - prevMousePos.y()) * mouseRotationSensitivity.y();
-        cameraTilt += deltaY;
+        camera.tilt += deltaY;
 
-        if (cameraTilt > 0)
+        if (camera.tilt > 0)
         {
-            cameraTilt = 0;
+            camera.tilt = 0;
         }
 
-        if (cameraTilt < -180)
+        if (camera.tilt < -180)
         {
-            cameraTilt = -180;
+            camera.tilt = -180;
         }
 
         prevMousePos = event->globalPos();
@@ -71,16 +77,16 @@ void SceneWidget::wheelEvent(QWheelEvent *event)
         return;
     }
 
-    zoom += (zoom * event->angleDelta().y() / 1000.0) * mouseWheelZoomSensitivity;
+    camera.zoom += (camera.zoom * event->angleDelta().y() / 1000.0) * mouseWheelZoomSensitivity;
 
-    if (zoom < minZoom)
+    if (camera.zoom < camera.minZoom)
     {
-        zoom = minZoom;
+        camera.zoom = camera.minZoom;
     }
 
-    if (zoom > maxZoom)
+    if (camera.zoom > camera.maxZoom)
     {
-        zoom = maxZoom;
+        camera.zoom = camera.maxZoom;
     }
 
     updateProjection();
@@ -90,9 +96,9 @@ void SceneWidget::updateProjection()
 {
     QMatrix4x4 matrix;
     matrix.translate(0.0, 0.0, -22);
-    matrix.rotate(cameraTilt, QVector3D(1, 0, 0));
-    matrix.rotate(cameraYaw, QVector3D(0, 0, 1));
-    matrix.scale(zoom);
+    matrix.rotate(camera.tilt, QVector3D(1, 0, 0));
+    matrix.rotate(camera.yaw, QVector3D(0, 0, 1));
+    matrix.scale(camera.zoom);
 
     scene.setProjection(matrix);
 }
