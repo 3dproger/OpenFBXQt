@@ -1,6 +1,7 @@
 #pragma once
 
 #include "skeleton.h"
+#include "material.h"
 #include <QString>
 #include <QOpenGLBuffer>
 #include <QOpenGLShaderProgram>
@@ -11,55 +12,6 @@ namespace ofbxqt
 
 class Model;
 class Loader;
-
-struct Material
-{
-    enum class Type { Color, Image };
-
-    Material(const Type type_)
-        : type(type_)
-    {}
-
-    Type type = Type::Color;
-
-    virtual void initializeGL() = 0;
-};
-
-struct TextureMaterial : public Material
-{
-    TextureMaterial(const QImage& image_, const QString& fileName_)
-        : Material(Type::Image)
-        , image(image_)
-        , fileName(fileName_)
-    {}
-
-    virtual void initializeGL() override
-    {
-        if (image.isNull())
-        {
-            qCritical() << Q_FUNC_INFO << "image is null";
-            return;
-        }
-
-        texture = std::shared_ptr<QOpenGLTexture>(new QOpenGLTexture(image.mirrored()));
-    }
-
-    const QImage image;
-    const QString fileName;
-    mutable std::shared_ptr<QOpenGLTexture> texture;
-};
-
-struct ColorMaterial : public Material
-{
-    ColorMaterial(const QColor& color_)
-        : Material(Type::Color)
-        , color(color_)
-    {}
-
-    virtual void initializeGL() override {}
-
-    QColor color;
-};
 
 struct VertexAttributeInfo
 {

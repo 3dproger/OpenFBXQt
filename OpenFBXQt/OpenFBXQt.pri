@@ -8,6 +8,7 @@ SOURCES += \
         $$PWD/basescenewidget.cpp \
         $$PWD/joint.cpp \
         $$PWD/loader.cpp \
+        $$PWD/material.cpp \
         $$PWD/model.cpp \
         $$PWD/scene.cpp \
         $$PWD/skeleton.cpp
@@ -18,6 +19,7 @@ HEADERS += \
         $$PWD/basescenewidget.h \
         $$PWD/joint.h \
         $$PWD/loader.h \
+        $$PWD/material.h \
         $$PWD/model.h \
         $$PWD/modeldatastorage.h \
         $$PWD/openfbxqt.h \

@@ -3,58 +3,6 @@
 namespace ofbxqt
 {
 
-static bool shuffledSpareColor = false;
-static int currentSpareColors = 0;
-
-static QList<QColor> spareColors =
-{
-    QColor(239, 154, 154),
-    QColor(244, 67, 54),
-    QColor(183, 28, 28),
-    QColor(206, 147, 216),
-    QColor(156, 39, 176),
-    QColor(74, 20, 140),
-    QColor(179, 157, 219),
-    QColor(103, 58, 183),
-    QColor(49, 27, 146),
-    QColor(159, 168, 218),
-    QColor(33, 150, 243),
-    QColor(13, 71, 161),
-    QColor(129, 212, 250),
-    QColor(3, 169, 244),
-    QColor(1, 87, 155),
-    QColor(128, 222, 234),
-    QColor(0, 188, 212),
-    QColor(0, 96, 100),
-    QColor(128, 203, 196),
-    QColor(0, 150, 136),
-    QColor(0, 77, 64),
-    QColor(165, 214, 167),
-    QColor(76, 175, 80),
-    QColor(27, 94, 32),
-    QColor(197, 225, 165),
-    QColor(139, 195, 74),
-    QColor(51, 105, 30),
-    QColor(255, 245, 157),
-    QColor(255, 235, 59),
-    QColor(245, 127, 23),
-    QColor(255, 224, 130),
-    QColor(255, 193, 7),
-    QColor(255, 111, 0),
-    QColor(255, 204, 128),
-    QColor(255, 87, 34),
-    QColor(191, 54, 12),
-    QColor(188, 170, 164),
-    QColor(121, 85, 72),
-    QColor(62, 39, 35),
-    QColor(238, 238, 238),
-    QColor(158, 158, 158),
-    QColor(33, 33, 33),
-    QColor(176, 190, 197),
-    QColor(96, 125, 139),
-    QColor(38, 50, 56),
-};
-
 Model::Model(std::shared_ptr<ModelData> data_)
     : skeleton(data_->skeleton)
     , data(data_)
@@ -62,13 +10,6 @@ Model::Model(std::shared_ptr<ModelData> data_)
     if (!data)
     {
         qCritical() << Q_FUNC_INFO << "data is null";
-    }
-
-    if (!shuffledSpareColor)
-    {
-        shuffledSpareColor = true;
-
-        std::random_shuffle(spareColors.begin(), spareColors.end());
     }
 }
 
@@ -92,26 +33,6 @@ void Model::initializeGL()
     if (!material)
     {
         material = data->material;
-    }
-
-    if (!material)
-    {
-        if (!spareColors.isEmpty())
-        {
-            if (currentSpareColors >= spareColors.count())
-            {
-                currentSpareColors = 0;
-            }
-
-            material = std::shared_ptr<Material>(new ColorMaterial(spareColors[currentSpareColors]));
-
-            currentSpareColors++;
-        }
-        else
-        {
-            material = std::shared_ptr<Material>(new ColorMaterial(QColor(191, 191, 191)));
-            qWarning() << Q_FUNC_INFO << "spare colors is empty. Used default material";
-        }
     }
 
     if (material)
@@ -210,14 +131,13 @@ void Model::initializeGL()
         }
 
         QString fshaderFileName;
-        switch (material->type)
+        if (material->diffuseTexture)
         {
-        case Material::Type::Image:
             fshaderFileName = ":/OpenFBXQt-shaders/fshader-textured.glsl";
-            break;
-        case Material::Type::Color:
+        }
+        else
+        {
             fshaderFileName = ":/OpenFBXQt-shaders/fshader-colored.glsl";
-            break;
         }
 
         if (!data->shader.addShaderFromSourceFile(QOpenGLShader::Vertex, vshaderFileName))
@@ -258,30 +178,20 @@ void Model::paintGL(const QMatrix4x4 &projection)
 #ifdef QT_DEBUG
         qCritical() << Q_FUNC_INFO << "material is null";
 #endif
-        return;
     }
 
-    const TextureMaterial* textureMaterial = nullptr;
-    const ColorMaterial* colorMaterial = nullptr;
-
-    switch(material->type)
+    if (material->diffuseTexture)
     {
-    case ofbxqt::Material::Type::Color:
-        colorMaterial = static_cast<const ColorMaterial*>(material.get());
-        break;
-    case ofbxqt::Material::Type::Image:
-        textureMaterial = static_cast<const TextureMaterial*>(material.get());
-        if (textureMaterial->texture)
+        if (material->diffuseTexture->texture)
         {
-            textureMaterial->texture->bind();
+            material->diffuseTexture->texture->bind();
         }
         else
         {
 #ifdef QT_DEBUG
-            qCritical() << Q_FUNC_INFO << "texture is null";
+            qCritical() << Q_FUNC_INFO << "diffuse texture is null";
 #endif
         }
-        break;
     }
 
     if (!data->shader.bind())
@@ -296,22 +206,28 @@ void Model::paintGL(const QMatrix4x4 &projection)
 
     data->shader.setUniformValue("projection_pos", v);
     data->shader.setUniformValue("model_projection_matrix", projection * matrix * data->sourceMatrix);
-    if (material->type == Material::Type::Image)
+
+    if (material)
     {
-        data->shader.setUniformValue("texture", 0);
-    }
-    else if (material->type == Material::Type::Color)
-    {
-        if (colorMaterial)
+        if (material->diffuseTexture && material->diffuseTexture->texture)
         {
-            data->shader.setUniformValue("u_color", colorMaterial->color);
+            data->shader.setUniformValue("texture", 0);
+        }
+        else if (material->diffuseColor)
+        {
+            data->shader.setUniformValue("u_color", *material->diffuseColor);
         }
         else
         {
 #ifdef QT_DEBUG
-            qCritical() << Q_FUNC_INFO << "color material is null";
+        qCritical() << Q_FUNC_INFO << "diffuse color is null";
 #endif
+        data->shader.setUniformValue("u_color", QColor());
         }
+    }
+    else
+    {
+        data->shader.setUniformValue("u_color", QColor());
     }
 
     if (needUpdateSkeleton)
@@ -348,9 +264,9 @@ void Model::paintGL(const QMatrix4x4 &projection)
 
     data->shader.release();
 
-    if (material->type == Material::Type::Image && textureMaterial && textureMaterial->texture)
+    if (material && material->diffuseTexture && material->diffuseTexture->texture)
     {
-        textureMaterial->texture->release();
+        material->diffuseTexture->texture->release();
     }
 
     data->vertexBuffer.release();

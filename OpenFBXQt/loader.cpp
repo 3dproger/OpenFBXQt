@@ -11,6 +11,58 @@
 namespace ofbxqt
 {
 
+static bool shuffledSpareColor = false;
+static int currentSpareColors = 0;
+
+static QList<QColor> spareColors =
+{
+    QColor(239, 154, 154),
+    QColor(244, 67, 54),
+    QColor(183, 28, 28),
+    QColor(206, 147, 216),
+    QColor(156, 39, 176),
+    QColor(74, 20, 140),
+    QColor(179, 157, 219),
+    QColor(103, 58, 183),
+    QColor(49, 27, 146),
+    QColor(159, 168, 218),
+    QColor(33, 150, 243),
+    QColor(13, 71, 161),
+    QColor(129, 212, 250),
+    QColor(3, 169, 244),
+    QColor(1, 87, 155),
+    QColor(128, 222, 234),
+    QColor(0, 188, 212),
+    QColor(0, 96, 100),
+    QColor(128, 203, 196),
+    QColor(0, 150, 136),
+    QColor(0, 77, 64),
+    QColor(165, 214, 167),
+    QColor(76, 175, 80),
+    QColor(27, 94, 32),
+    QColor(197, 225, 165),
+    QColor(139, 195, 74),
+    QColor(51, 105, 30),
+    QColor(255, 245, 157),
+    QColor(255, 235, 59),
+    QColor(245, 127, 23),
+    QColor(255, 224, 130),
+    QColor(255, 193, 7),
+    QColor(255, 111, 0),
+    QColor(255, 204, 128),
+    QColor(255, 87, 34),
+    QColor(191, 54, 12),
+    QColor(188, 170, 164),
+    QColor(121, 85, 72),
+    QColor(62, 39, 35),
+    QColor(238, 238, 238),
+    QColor(158, 158, 158),
+    QColor(33, 33, 33),
+    QColor(176, 190, 197),
+    QColor(96, 125, 139),
+    QColor(38, 50, 56),
+};
+
 static QMatrix4x4 convertMatrix4x4(const ofbx::Matrix& source)
 {
     return QMatrix4x4(
@@ -57,7 +109,11 @@ static bool compareJointData(const QPair<GLuint, GLfloat>& joint1, const QPair<G
 
 Loader::Loader()
 {
-
+    if (!shuffledSpareColor)
+    {
+        shuffledSpareColor = true;
+        std::random_shuffle(spareColors.begin(), spareColors.end());
+    }
 }
 
 QVector<std::shared_ptr<Model>> Loader::open(const QString &fileName, const OpenModelConfig config_, QList<Note>* notes_)
@@ -301,7 +357,7 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
         return nullptr;
     }
 
-    std::shared_ptr<Material> material;
+    std::shared_ptr<Material> material = std::shared_ptr<Material>(new Material());
 
     if (config.loadMaterial)
     {
@@ -315,13 +371,36 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
 
         if (materialsCount > 0)
         {
-            material = loadMaterial(mesh->getMaterial(0), meshIndex, 0, absoluteDirectoryPath);
+            loadMaterial(mesh->getMaterial(0), material, meshIndex, 0, absoluteDirectoryPath);
         }
         else
         {
             addNote(Note::Type::Warning, QTranslator::tr("No materials. Mesh %1").arg(meshIndex));
             qWarning() << Q_FUNC_INFO << "no materials. Mesh" << meshIndex;
         }
+    }
+
+    if (!material->diffuseColor)
+    {
+        QColor* color = new QColor(191, 191, 191);
+
+        if (!spareColors.isEmpty())
+        {
+            if (currentSpareColors >= spareColors.count())
+            {
+                currentSpareColors = 0;
+            }
+
+            *color = spareColors[currentSpareColors];
+
+            currentSpareColors++;
+        }
+        else
+        {
+            qWarning() << Q_FUNC_INFO << "spare colors is empty. Used default color";
+        }
+
+        material->diffuseColor = std::unique_ptr<QColor>(color);
     }
 
     std::shared_ptr<ModelData> data(new ModelData());
@@ -469,90 +548,84 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
     return std::shared_ptr<Model>(new Model(data));
 }
 
-std::shared_ptr<Material> Loader::loadMaterial(const ofbx::Material *rawMaterial, const int meshIndex, const int materialIndex, const QString& absoluteDirectoryPath)
+void Loader::loadMaterial(const ofbx::Material *rawMaterial, std::shared_ptr<Material> material, const int meshIndex, const int materialIndex, const QString& absoluteDirectoryPath)
 {
     if (!rawMaterial)
     {
         addNote(Note::Type::Error, QTranslator::tr("Internal error"));
         qCritical() << Q_FUNC_INFO << "raw material is null, mesh index =" << meshIndex << ", material index =" << materialIndex;
-        return nullptr;
-    }
-
-    std::shared_ptr<Material> material = nullptr;
-
-    if (config.loadMaterialTexture)
-    {
-        for (int i = 0; i < (int)ofbx::Texture::TextureType::COUNT; ++i)
-        {
-            const ofbx::Texture::TextureType type = (ofbx::Texture::TextureType)i;
-            const QString textureTypeStr = textureTypeToString(type);
-
-            const ofbx::Texture* texture = rawMaterial->getTexture(type);
-            if (texture)
-            {
-                bool isSupportedTextureType = false;
-                switch (type)
-                {
-                case ofbx::Texture::DIFFUSE:
-                {
-                    isSupportedTextureType = true;
-
-                    QImage image;
-                    QString fileName;
-                    if (loadImage(image, fileName, texture, absoluteDirectoryPath, meshIndex, materialIndex, type))
-                    {
-                        material = std::shared_ptr<Material>(new TextureMaterial(image, fileName));
-                    }
-                }
-                    break;
-
-                case ofbx::Texture::NORMAL:
-                case ofbx::Texture::SPECULAR:
-                case ofbx::Texture::SHININESS:
-                case ofbx::Texture::AMBIENT:
-                case ofbx::Texture::EMISSIVE:
-                case ofbx::Texture::REFLECTION:
-                case ofbx::Texture::COUNT:
-                    break;
-                }
-
-                if (!isSupportedTextureType)
-                {
-                    addNote(Note::Type::Warning, QTranslator::tr("Texture type \"%1\" not supported. Mesh %2, material %3")
-                                      .arg(textureTypeStr).arg(meshIndex).arg(materialIndex));
-                    qWarning() << Q_FUNC_INFO << "texture type" << textureTypeStr << "not supported";
-                }
-            }
-        }
+        return;
     }
 
     if (!material)
     {
-        if (config.loadMaterialColor)
+        addNote(Note::Type::Error, QTranslator::tr("Internal error"));
+        qCritical() << Q_FUNC_INFO << "material is null, mesh index =" << meshIndex << ", material index =" << materialIndex;
+        return;
+    }
+
+    for (int i = 0; i < (int)ofbx::Texture::TextureType::COUNT; ++i)
+    {
+        const ofbx::Texture::TextureType type = (ofbx::Texture::TextureType)i;
+        const QString textureTypeStr = textureTypeToString(type);
+
+        const ofbx::Texture* rawTexture = rawMaterial->getTexture(type);
+        if (rawTexture)
         {
-            material = std::shared_ptr<Material>(new ColorMaterial(covertColor(rawMaterial->getDiffuseColor())));
+            bool isSupportedTextureType = false;
+            switch (type)
+            {
+            case ofbx::Texture::DIFFUSE:
+                isSupportedTextureType = true;
+                if (config.loadDiffuseTexture)
+                {
+                    loadTexture(rawTexture, material->diffuseTexture, absoluteDirectoryPath, meshIndex, materialIndex, type);
+                }
+                break;
+
+            case ofbx::Texture::NORMAL:
+            case ofbx::Texture::SPECULAR:
+            case ofbx::Texture::SHININESS:
+            case ofbx::Texture::AMBIENT:
+            case ofbx::Texture::EMISSIVE:
+            case ofbx::Texture::REFLECTION:
+            case ofbx::Texture::COUNT:
+                break;
+            }
+
+            if (!isSupportedTextureType)
+            {
+                addNote(Note::Type::Warning, QTranslator::tr("Texture type \"%1\" not supported. Mesh %2, material %3")
+                                  .arg(textureTypeStr).arg(meshIndex).arg(materialIndex));
+                qWarning() << Q_FUNC_INFO << "texture type" << textureTypeStr << "not supported";
+            }
         }
     }
 
-    return material;
+    if (config.loadDiffuseColor)
+    {
+        material->diffuseColor = std::unique_ptr<QColor>(new QColor(covertColor(rawMaterial->getDiffuseColor())));
+    }
 }
 
-bool Loader::loadImage(QImage &image, QString& resultFileName, const ofbx::Texture* texture, const QString &absoluteDirectoryPath, const int meshIndex, const int materialIndex, ofbx::Texture::TextureType type)
+void Loader::loadTexture(const ofbx::Texture* rawTexture, std::shared_ptr<TextureInfo>& textureInfo, const QString &absoluteDirectoryPath, const int meshIndex, const int materialIndex, ofbx::Texture::TextureType type)
 {
-    image = QImage();
-    resultFileName = QString();
-
     const QString textureTypeStr = textureTypeToString(type);
-
-    if (!texture)
+    if (!rawTexture)
     {
         addNote(Note::Type::Error, QTranslator::tr("Internal error"));
-        qCritical() << Q_FUNC_INFO << "texture is null. Mesh " << meshIndex << ", material" << materialIndex << ", texture" << textureTypeStr;
-        return false;
+        qCritical() << Q_FUNC_INFO << "raw texture is null, mesh index =" << meshIndex << ", material index =" << materialIndex << ", texture type =" << textureTypeStr;
+        return;
+    }
+
+    if (textureInfo)
+    {
+        addNote(Note::Type::Warning, QTranslator::tr("Internal warning"));
+        qWarning() << Q_FUNC_INFO << "texture info already exists, it will be rewrited, mesh index =" << meshIndex << ", material index =" << materialIndex << ", texture type =" << textureTypeStr;
     }
 
     //TODO: implement search in relative directory path
-    const QString rawRelativeFileName = convertString2048(texture->getRelativeFileName());
+    const QString rawRelativeFileName = convertString2048(rawTexture->getRelativeFileName());
     const QString relativeFileName = QFileInfo(rawRelativeFileName).fileName();
 
     if (relativeFileName.isEmpty())
@@ -560,50 +633,46 @@ bool Loader::loadImage(QImage &image, QString& resultFileName, const ofbx::Textu
         addNote(Note::Type::Error, QTranslator::tr("Empty texture image relative file name. Mesh %1, material %2, texture %3")
                           .arg(meshIndex).arg(materialIndex).arg(textureTypeStr));
         qCritical() << Q_FUNC_INFO << "empty texture image relative file name. Mesh " << meshIndex << ", material" << materialIndex << ", texture" << textureTypeStr;
+        return;
     }
-    else
+
+    const QString fileName = absoluteDirectoryPath + "/" + relativeFileName;
+
+    if (rawRelativeFileName != relativeFileName)
     {
-        const QString fileName = absoluteDirectoryPath + "/" + relativeFileName;
-
-        if (rawRelativeFileName != relativeFileName)
-        {
-            addNote(Note::Type::Info, QTranslator::tr("Path \"%1\" converted to \"%2\". Mesh %3, material %4, texture %5")
-                              .arg(rawRelativeFileName, fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr));
-        }
-
-        const QFileInfo fileInfo(fileName);
-        if (!fileInfo.exists())
-        {
-            addNote(Note::Type::Error, QTranslator::tr("File \"%1\" not found. Mesh %2, material %3, texture %4")
-                              .arg(fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr));
-            qCritical() << Q_FUNC_INFO << "file" << fileName << "not found. Mesh " << meshIndex << ", material" << materialIndex << ", texture" << textureTypeStr;
-        }
-        else if (!fileInfo.isReadable())
-        {
-            addNote(Note::Type::Error, QTranslator::tr("File \"%1\" not readable. Mesh %2, material %3, texture %4")
-                              .arg(fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr));
-            qCritical() << Q_FUNC_INFO << "file" << fileName << "not readable. Mesh " << meshIndex << ", material" << materialIndex << ", texture" << textureTypeStr;
-        }
-        else
-        {
-            if (image.load(fileName))
-            {
-                resultFileName = fileName;
-                addNote(Note::Type::Info, QTranslator::tr("Opened image \"%1\". Mesh %2, material %3, texture %4")
-                                  .arg(fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr));
-
-                return true;
-            }
-            else
-            {
-                addNote(Note::Type::Error, QTranslator::tr("Failed to open image \"%1\". Mesh %2, material %3, texture %4")
-                                  .arg(fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr));
-                qCritical() << Q_FUNC_INFO << "failed to open image" << fileName << ". Mesh " << meshIndex << ", material" << materialIndex << ", texture" << textureTypeStr;
-            }
-        }
+        addNote(Note::Type::Info, QTranslator::tr("Path \"%1\" converted to \"%2\". Mesh %3, material %4, texture %5")
+                          .arg(rawRelativeFileName, fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr));
     }
 
-    return false;
+    const QFileInfo fileInfo(fileName);
+    if (!fileInfo.exists())
+    {
+        addNote(Note::Type::Error, QTranslator::tr("File \"%1\" not found. Mesh %2, material %3, texture %4")
+                          .arg(fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr));
+        qCritical() << Q_FUNC_INFO << "file" << fileName << "not found. Mesh " << meshIndex << ", material" << materialIndex << ", texture" << textureTypeStr;
+        return;
+    }
+
+    if (!fileInfo.isReadable())
+    {
+        addNote(Note::Type::Error, QTranslator::tr("File \"%1\" not readable. Mesh %2, material %3, texture %4")
+                          .arg(fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr));
+        qCritical() << Q_FUNC_INFO << "file" << fileName << "not readable. Mesh " << meshIndex << ", material" << materialIndex << ", texture" << textureTypeStr;
+        return;
+    }
+    QImage image(fileName);
+    if (image.isNull())
+    {
+        addNote(Note::Type::Error, QTranslator::tr("Failed to open image \"%1\". Mesh %2, material %3, texture %4")
+                          .arg(fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr));
+        qCritical() << Q_FUNC_INFO << "failed to open image" << fileName << ". Mesh " << meshIndex << ", material" << materialIndex << ", texture" << textureTypeStr;
+        return;
+    }
+
+    textureInfo = std::shared_ptr<TextureInfo>(new TextureInfo(image, fileName));
+
+    addNote(Note::Type::Info, QTranslator::tr("Opened %1 texture \"%2\". Mesh %3, material %4, texture %5")
+                      .arg(textureTypeStr).arg(fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr));
 }
 
 void Loader::addVertexAttributeGLfloat(ModelData& data, const QString &nameForShader, const int tupleSize)
