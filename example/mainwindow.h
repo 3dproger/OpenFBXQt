@@ -2,6 +2,7 @@
 
 #include "openfbxqt.h"
 #include "joint.h"
+#include "model.h"
 #include <QMainWindow>
 #include <QTreeWidgetItem>
 
@@ -28,6 +29,7 @@ private:
     void open(const QString& fileName);
     void addLogMessage(const ofbxqt::Note& note);
     void updateSceneTree();
+    QTreeWidgetItem* createModelItem(const std::shared_ptr<ofbxqt::Model>& model);
     void fillJointItem(QTreeWidgetItem& parentItem, const QVector<std::shared_ptr<ofbxqt::Joint>>& joints);
     void updateInspector();
 

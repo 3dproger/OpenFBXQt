@@ -95,9 +95,9 @@ void Scene::addModel(std::shared_ptr<Model> model)
 
 QVector<std::shared_ptr<Model>> Scene::open(const QString &fileName, const OpenModelConfig config, QList<ofbxqt::Note>* notes)
 {
-    QVector<std::shared_ptr<Model>> models = Loader().open(fileName, config, notes);
+    QVector<std::shared_ptr<Model>> topLevelModels = Loader().open(fileName, config, notes);
 
-    for (std::shared_ptr<Model> model : qAsConst(models))
+    for (const std::shared_ptr<Model>& model : qAsConst(topLevelModels))
     {
         addModel(model);
     }
@@ -107,7 +107,7 @@ QVector<std::shared_ptr<Model>> Scene::open(const QString &fileName, const OpenM
         onNeedUpdateCallback();
     }
 
-    return models;
+    return topLevelModels;
 }
 
 void Scene::clear()

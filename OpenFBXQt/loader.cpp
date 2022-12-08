@@ -214,19 +214,65 @@ QVector<std::shared_ptr<Model>> Loader::open(const QString &fileName, const Open
     const QFileInfo fileInfo(fileName);
     const QString absoluteDirectoryPath = fileInfo.absoluteDir().absolutePath();
 
+    QVector<QPair<const ofbx::Mesh*, std::shared_ptr<Model>>> modelBinds;
+
     QVector<std::shared_ptr<Model>> allModels;
     for (int i = 0; i < meshCount; ++i)
     {
-        std::shared_ptr<Model> model = loadMesh(scene->getMesh(i), i, absoluteDirectoryPath);
+        const ofbx::Mesh* mesh = scene->getMesh(i);
+        std::shared_ptr<Model> model = loadMesh(mesh, i, absoluteDirectoryPath);
         if (model)
         {
             allModels.append(model);
+        }
+
+        modelBinds.append(QPair<const ofbx::Mesh*, std::shared_ptr<Model>>(mesh, model ? model : nullptr));
+    }
+
+    for (int i = 0; i < modelBinds.count(); ++i)
+    {
+        for (int j = 0; j < modelBinds.count(); ++j)
+        {
+            if (i == j || !modelBinds[i].first || !modelBinds[i].second || !modelBinds[j].first || !modelBinds[j].second
+                    || !modelBinds[i].second->parent.expired() || !modelBinds[j].second->parent.expired())
+            {
+                continue;
+            }
+
+            std::shared_ptr<Model> model1 = modelBinds[i].second;
+            std::shared_ptr<Model> model2 = modelBinds[j].second;
+
+            const ofbx::Mesh* mesh1 = modelBinds[i].first;
+            const ofbx::Mesh* mesh2 = modelBinds[j].first;
+
+            const ofbx::Object* parent1 = mesh1->getParent();
+            const ofbx::Object* parent2 = mesh1->getParent();
+
+            if (parent1 && parent1 == (const ofbx::Object*)mesh2)
+            {
+                model1->parent = model2;
+                model2->children.push_back(model1);
+            }
+            else if (parent2 && parent2 == (const ofbx::Object*)mesh1)
+            {
+                model2->parent = model1;
+                model1->children.push_back(model2);
+            }
+        }
+    }
+
+    QVector<std::shared_ptr<Model>> topLevelModels;
+    for (const std::shared_ptr<Model>& model : allModels)
+    {
+        if (model->parent.expired())
+        {
+            topLevelModels.append(model);
         }
     }
 
     scene->destroy();
 
-    return allModels;
+    return topLevelModels;
 }
 
 void Loader::addNote(const Note::Type type, const QString &text)

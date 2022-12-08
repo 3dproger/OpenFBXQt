@@ -15,7 +15,7 @@ public:
     std::shared_ptr<Material> material;
 
     std::weak_ptr<Model> parent;
-    std::vector<std::shared_ptr<Model>> children;
+    QVector<std::shared_ptr<Model>> children;
 
     friend class Loader;
 

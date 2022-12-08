@@ -108,7 +108,7 @@ void MainWindow::open(const QString &fileName)
     }
     else
     {
-        addLogMessage(ofbxqt::Note(ofbxqt::Note::Type::Info, tr("Open %1 model(s)").arg(models.count())));
+        addLogMessage(ofbxqt::Note(ofbxqt::Note::Type::Info, tr("Opened %1 top level model(s)").arg(models.count())));
     }
 
     updateSceneTree();
@@ -147,38 +147,47 @@ void MainWindow::updateSceneTree()
     tree.clear();
     updateInspector();
     const ofbxqt::Scene& scene = ui->sceneWidget->scene;
-    const QVector<std::shared_ptr<ofbxqt::Model>>& models = scene.getTopLevelModels();
-    if (models.isEmpty())
+    const QVector<std::shared_ptr<ofbxqt::Model>>& topLevelModels = scene.getTopLevelModels();
+    if (topLevelModels.isEmpty())
     {
         QTreeWidgetItem* item = new QTreeWidgetItem({ tr("Empty") });
         tree.addTopLevelItem(item);
         return;
     }
 
-    for (int modelIndex = 0; modelIndex < models.count(); ++modelIndex)
+    for (int i = 0; i < topLevelModels.count(); ++i)
     {
-        const std::shared_ptr<ofbxqt::Model> model = models[modelIndex];
-
-        QTreeWidgetItem* modelItem = new QTreeWidgetItem({ model->getName() });
-        modelItem->setIcon(0, modelIcon);
-        tree.addTopLevelItem(modelItem);
-        modelItem->setData(0, ItemTypeRole, (int)ItemType::Model);
-        modelItem->setData(0, ItemPointerRole, (uint64_t)model.get());
-
-        if (model->armature)
-        {
-            QTreeWidgetItem* armatureItem = new QTreeWidgetItem({ tr("Armature")});
-            armatureItem->setIcon(0, armatureIcon);
-            armatureItem->setData(0, ItemTypeRole, (int)ItemType::Armature);
-            armatureItem->setData(0, ItemPointerRole, (uint64_t)model->armature.get());
-
-            fillJointItem(*armatureItem, model->armature->getTopLevelJoints());
-
-            modelItem->addChild(armatureItem);
-        }
+        tree.addTopLevelItem(createModelItem(topLevelModels[i]));
     }
 
     updateInspector();
+}
+
+QTreeWidgetItem *MainWindow::createModelItem(const std::shared_ptr<ofbxqt::Model> &model)
+{
+    QTreeWidgetItem* modelItem = new QTreeWidgetItem({ model->getName() });
+    modelItem->setIcon(0, modelIcon);
+    modelItem->setData(0, ItemTypeRole, (int)ItemType::Model);
+    modelItem->setData(0, ItemPointerRole, (uint64_t)model.get());
+
+    if (model->armature)
+    {
+        QTreeWidgetItem* armatureItem = new QTreeWidgetItem({ tr("Armature")});
+        armatureItem->setIcon(0, armatureIcon);
+        armatureItem->setData(0, ItemTypeRole, (int)ItemType::Armature);
+        armatureItem->setData(0, ItemPointerRole, (uint64_t)model->armature.get());
+
+        fillJointItem(*armatureItem, model->armature->getTopLevelJoints());
+
+        modelItem->addChild(armatureItem);
+    }
+
+    for (const std::shared_ptr<ofbxqt::Model>& child : qAsConst(model->children))
+    {
+        modelItem->addChild(createModelItem(child));
+    }
+
+    return modelItem;
 }
 
 void MainWindow::fillJointItem(QTreeWidgetItem &parentItem, const QVector<std::shared_ptr<ofbxqt::Joint>>& joints)
@@ -241,6 +250,13 @@ void MainWindow::updateInspector()
 
         titleLayout->addItem(new QSpacerItem(10, 10, QSizePolicy::Policy::MinimumExpanding));
         layout.addLayout(titleLayout);
+
+        if (!model->children.isEmpty())
+        {
+            QLabel* label = new QLabel(tr("Children: %1").arg(model->children.count()), this);
+            label->setWordWrap(true);
+            layout.addWidget(label);
+        }
 
         if (model->material)
         {
