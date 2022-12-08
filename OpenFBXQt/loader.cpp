@@ -401,7 +401,18 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
     std::shared_ptr<ModelData> data(new ModelData());
 
     data->material = material;
-    data->sourceMatrix = convertMatrix4x4(mesh->getLocalTransform());
+    data->sourceMatrix = QMatrix4x4();
+
+    if (config.loadTransform)
+    {
+        //data->sourceMatrix *= convertMatrix4x4(mesh->getLocalTransform());
+        data->sourceMatrix *= convertMatrix4x4(mesh->getGlobalTransform());
+        const ofbx::Pose* pose = mesh->getPose();
+        if (pose)
+        {
+            //data->sourceMatrix *= convertMatrix4x4(pose->getMatrix());
+        }
+    }
 
     QHash<GLuint, QVector<QPair<GLuint, GLfloat>>> jointsData;
 

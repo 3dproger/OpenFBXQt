@@ -7,6 +7,7 @@ namespace ofbxqt
 
 struct OpenModelConfig
 {
+    bool loadTransform = true;
     bool loadArmature = true;
 
     bool loadMaterial = true;
