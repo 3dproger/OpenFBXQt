@@ -114,6 +114,7 @@ void Scene::clear()
 {
     models.clear();
     DataStorage::data.clear();
+    DataStorage::textures.clear();
 
     if (onNeedUpdateCallback)
     {
