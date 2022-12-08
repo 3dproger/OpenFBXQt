@@ -5,12 +5,10 @@ namespace ofbxqt
 
 void Armature::update()
 {
-    if (!rootJoint)
+    for (const std::shared_ptr<Joint>& joint : qAsConst(topLevelJoints))
     {
-        return;
+         update(joint);
     }
-
-    update(rootJoint);
 }
 
 std::shared_ptr<Joint> Armature::getJointByName(const QString &name)
@@ -21,13 +19,13 @@ std::shared_ptr<Joint> Armature::getJointByName(const QString &name)
         return nullptr;
     }
 
-    if (index >= joints.count())
+    if (index >= allJoints.count())
     {
         qCritical() << Q_FUNC_INFO << "index out of bound";
         return nullptr;
     }
 
-    return joints[index];
+    return allJoints[index];
 }
 
 void Armature::update(std::shared_ptr<Joint> joint, const QMatrix4x4 &parentMatrix)
@@ -42,7 +40,7 @@ void Armature::update(std::shared_ptr<Joint> joint, const QMatrix4x4 &parentMatr
 
     jointsResultMatrices[joint->index] = matrix;
 
-    for (std::shared_ptr<Joint> child : qAsConst(joint->children))
+    for (const std::shared_ptr<Joint> &child : qAsConst(joint->children))
     {
         update(child, matrix);
     }

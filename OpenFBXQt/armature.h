@@ -17,17 +17,17 @@ public:
 
     void update();
 
-    const QVector<std::shared_ptr<Joint>>& getJoints() const { return joints; }
-    std::shared_ptr<Joint> getRootJoint() { return rootJoint; }
+    const QVector<std::shared_ptr<Joint>>& getTopLevelJoints() const { return topLevelJoints; }
+    const QVector<std::shared_ptr<Joint>>& getAllJoints() const { return allJoints; }
     std::shared_ptr<Joint> getJointByName(const QString& name);
 
 private:
     void update(std::shared_ptr<Joint>, const QMatrix4x4& parentMatrix = QMatrix4x4());
 
-    std::shared_ptr<Joint> rootJoint;
     QVector<QMatrix4x4> jointsResultMatrices;
     QHash<QString, int> jointsByName; // <name, index>
-    QVector<std::shared_ptr<Joint>> joints;
+    QVector<std::shared_ptr<Joint>> topLevelJoints;
+    QVector<std::shared_ptr<Joint>> allJoints;
 };
 
 }

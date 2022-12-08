@@ -170,13 +170,9 @@ void MainWindow::updateSceneTree()
             QTreeWidgetItem* armatureItem = new QTreeWidgetItem({ tr("Armature")});
             armatureItem->setIcon(0, armatureIcon);
             armatureItem->setData(0, ItemTypeRole, (int)ItemType::Armature);
-            armatureItem->setData(0, ItemPointerRole, (uint64_t)&model->armature);
+            armatureItem->setData(0, ItemPointerRole, (uint64_t)model->armature.get());
 
-            const std::shared_ptr<ofbxqt::Joint> joint = model->armature->getRootJoint();
-            if (joint)
-            {
-                fillJointItem(*armatureItem, { joint });
-            }
+            fillJointItem(*armatureItem, model->armature->getTopLevelJoints());
 
             modelItem->addChild(armatureItem);
         }
@@ -281,7 +277,7 @@ void MainWindow::updateInspector()
 
         qDebug() << Q_FUNC_INFO << "armature" << (uint64_t)armature;
 
-        layout.addWidget(new QLabel(tr("Joints count %1").arg(armature->getJoints().count()), this));
+        layout.addWidget(new QLabel(tr("Joints count %1").arg(armature->getAllJoints().count()), this));
     }
     else if (itemType == ItemType::Joint)
     {
