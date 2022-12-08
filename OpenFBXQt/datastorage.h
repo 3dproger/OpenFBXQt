@@ -24,6 +24,8 @@ struct VertexAttributeInfo
 
 struct ModelData
 {
+    QString name;
+
     std::shared_ptr<Material> material;
     std::shared_ptr<Armature> armature;
 

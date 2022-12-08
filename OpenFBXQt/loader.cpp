@@ -157,6 +157,8 @@ QVector<std::shared_ptr<Model>> Loader::open(const QString &fileName, const Open
         return QVector<std::shared_ptr<Model>>();
     }
 
+    modelFileName = QFileInfo(fileName).fileName();
+
     const QByteArray rawData = file.readAll();
     file.close();
 
@@ -260,13 +262,13 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data, QHash<GLuint, Q
 
     QHash<const ofbx::Object*, std::shared_ptr<Joint>> objectsJoints;
 
-    for (int clusterNum = 0; clusterNum < skin->getClusterCount(); ++clusterNum)
+    for (int clusterIndex = 0; clusterIndex < clusterCount; ++clusterIndex)
     {
-        const ofbx::Cluster* cluster = skin->getCluster(clusterNum);
+        const ofbx::Cluster* cluster = skin->getCluster(clusterIndex);
         if (!cluster)
         {
             addNote(Note::Type::Error, QTranslator::tr("Internal error"));
-            qCritical() << Q_FUNC_INFO << "cluster is null at index" << clusterNum;
+            qCritical() << Q_FUNC_INFO << "cluster is null at index" << clusterIndex;
             continue;
         }
 
@@ -274,7 +276,7 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data, QHash<GLuint, Q
         if (!object)
         {
             addNote(Note::Type::Error, QTranslator::tr("Internal error"));
-            qCritical() << Q_FUNC_INFO << "object/link of cluster is null at index" << clusterNum;
+            qCritical() << Q_FUNC_INFO << "link of cluster" << clusterIndex << "is null";
             continue;
         }
 
@@ -459,6 +461,14 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
     }
 
     std::shared_ptr<ModelData> data(new ModelData());
+
+    QString modelName = QString(mesh->name).trimmed();
+    if (modelName.isEmpty())
+    {
+        modelName = QString("%1_%2").arg(modelFileName).arg(meshIndex);
+    }
+
+    data->name = modelName;
 
     data->material = material;
     data->sourceMatrix = QMatrix4x4();

@@ -24,6 +24,8 @@ public:
     void initializeGL();
     void paintGL(const QMatrix4x4& projection);
 
+    QString getName() const;
+
 private:
     bool initializedGL = false;
 

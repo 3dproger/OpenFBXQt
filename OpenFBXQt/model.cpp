@@ -270,4 +270,15 @@ void Model::paintGL(const QMatrix4x4 &projection)
     data->indexBuffer.release();
 }
 
+QString Model::getName() const
+{
+    if (!data)
+    {
+        qCritical() << Q_FUNC_INFO << "data is null";
+        return QString();
+    }
+
+    return data->name;
+}
+
 }

@@ -30,6 +30,7 @@ private:
     OpenModelConfig config;
     QList<Note>* notes = nullptr;
 
+    QString modelFileName;
     ModelData::AxisDirection upDirection = ModelData::DefaultUpDirection;
     ModelData::AxisDirection forwardDirection = ModelData::DefaultForwardDirection;
 

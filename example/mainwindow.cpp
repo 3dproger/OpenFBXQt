@@ -158,10 +158,10 @@ void MainWindow::updateSceneTree()
     for (int modelIndex = 0; modelIndex < models.count(); ++modelIndex)
     {
         const std::shared_ptr<ofbxqt::Model> model = models[modelIndex];
-        QTreeWidgetItem* modelItem = new QTreeWidgetItem({ tr("Model %1").arg(modelIndex) });
+
+        QTreeWidgetItem* modelItem = new QTreeWidgetItem({ model->getName() });
         modelItem->setIcon(0, modelIcon);
         tree.addTopLevelItem(modelItem);
-        modelItem->setExpanded(true);
         modelItem->setData(0, ItemTypeRole, (int)ItemType::Model);
         modelItem->setData(0, ItemPointerRole, (uint64_t)model.get());
 
@@ -230,10 +230,15 @@ void MainWindow::updateInspector()
         ofbxqt::Model* model = (ofbxqt::Model*)object;
 
         QHBoxLayout* titleLayout = new QHBoxLayout(this);
+
         QLabel* labelIcon = new QLabel();
         labelIcon->setPixmap(QPixmap(":/images/model.png"));
         titleLayout->addWidget(labelIcon);
-        titleLayout->addWidget(new QLabel(tr("Model"), this));
+
+        QLabel* labelName = new QLabel(model->getName(), this);
+        labelName->setWordWrap(true);
+        titleLayout->addWidget(labelName);
+
         titleLayout->addItem(new QSpacerItem(10, 10, QSizePolicy::Policy::MinimumExpanding));
         layout.addLayout(titleLayout);
 
@@ -256,7 +261,9 @@ void MainWindow::updateInspector()
                 text += tr("Normal texture \"%1\"").arg(model->material->diffuseTexture->getFileName()) + "\n";
             }
 
-            layout.addWidget(new QLabel(text, this));
+            QLabel* textLabel = new QLabel(text, this);
+            textLabel->setWordWrap(true);
+            layout.addWidget(textLabel);
         }
         else
         {
