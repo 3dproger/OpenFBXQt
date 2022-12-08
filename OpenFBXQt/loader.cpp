@@ -414,10 +414,13 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
 
     QHash<GLuint, QVector<QPair<GLuint, GLfloat>>> jointsData;
 
-    const ofbx::Skin* skin = geometry->getSkin();
-    if (skin)
+    if (config.loadArmature)
     {
-        loadJoints(skin, *data, jointsData);
+        const ofbx::Skin* skin = geometry->getSkin();
+        if (skin)
+        {
+            loadJoints(skin, *data, jointsData);
+        }
     }
 
     int idx = 0;

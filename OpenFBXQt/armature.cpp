@@ -13,16 +13,6 @@ void Armature::update()
     update(rootJoint);
 }
 
-const QVector<std::shared_ptr<Joint>> &Armature::getJoints() const
-{
-    return joints;
-}
-
-std::shared_ptr<Joint> Armature::getRootJoint()
-{
-    return rootJoint;
-}
-
 std::shared_ptr<Joint> Armature::getJointByName(const QString &name)
 {
     const int index = jointsByName.value(name, -1);

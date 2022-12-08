@@ -7,6 +7,8 @@ namespace ofbxqt
 
 struct OpenModelConfig
 {
+    bool loadArmature = true;
+
     bool loadMaterial = true;
 
     bool loadDiffuseTexture = true;

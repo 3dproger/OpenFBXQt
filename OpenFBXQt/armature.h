@@ -17,8 +17,8 @@ public:
 
     void update();
 
-    const QVector<std::shared_ptr<Joint>>& getJoints() const;
-    std::shared_ptr<Joint> getRootJoint();
+    const QVector<std::shared_ptr<Joint>>& getJoints() const { return joints; }
+    std::shared_ptr<Joint> getRootJoint() { return rootJoint; }
     std::shared_ptr<Joint> getJointByName(const QString& name);
 
 private:
