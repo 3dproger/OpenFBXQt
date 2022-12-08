@@ -417,6 +417,28 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
     data->material = material;
     data->sourceMatrix = QMatrix4x4();
 
+    switch (upDirection)
+    {
+    case ofbxqt::ModelData::AxisDirection::XPlus:
+        data->sourceMatrix.rotate(90, QVector3D(0, 1, 0));
+        break;
+    case ofbxqt::ModelData::AxisDirection::XMinus:
+        data->sourceMatrix.rotate(90, QVector3D(0, -1, 0));
+        break;
+    case ofbxqt::ModelData::AxisDirection::YPlus:
+        data->sourceMatrix.rotate(90, QVector3D(1, 0, 0));
+        break;
+    case ofbxqt::ModelData::AxisDirection::YMinus:
+        data->sourceMatrix.rotate(90, QVector3D(-1, 0, 0));
+        break;
+    case ofbxqt::ModelData::AxisDirection::ZPlus:
+        data->sourceMatrix.scale(1, 1, 1);
+        break;
+    case ofbxqt::ModelData::AxisDirection::ZMinus:
+        data->sourceMatrix.scale(1, 1, -1);
+        break;
+    }
+
     if (config.loadTransform)
     {
         //data->sourceMatrix *= convertMatrix4x4(mesh->getLocalTransform());
@@ -755,7 +777,7 @@ void Loader::convertAxisDirection(ModelData::AxisDirection& value, const int axi
         value = sign > 0 ? ModelData::AxisDirection::YPlus : ModelData::AxisDirection::YMinus;
         break;
     case 2:
-        value = sign > 0 ? ModelData::AxisDirection::XPlus : ModelData::AxisDirection::ZMinus;
+        value = sign > 0 ? ModelData::AxisDirection::ZPlus : ModelData::AxisDirection::ZMinus;
         break;
     }
 }
