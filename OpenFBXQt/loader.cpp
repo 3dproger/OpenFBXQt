@@ -107,6 +107,34 @@ static bool compareJointData(const QPair<GLuint, GLfloat>& joint1, const QPair<G
     return joint1.second >= joint2.second;
 }
 
+static bool isCompatibleAxisDirection(const ModelData::AxisDirection a, const ModelData::AxisDirection b)
+{
+    if (a == b)
+    {
+        return false;
+    }
+
+    if ((a == ModelData::AxisDirection::XPlus && b == ModelData::AxisDirection::XMinus) ||
+        (b == ModelData::AxisDirection::XPlus && a == ModelData::AxisDirection::XMinus))
+    {
+        return false;
+    }
+
+    if ((a == ModelData::AxisDirection::YPlus && b == ModelData::AxisDirection::YMinus) ||
+        (b == ModelData::AxisDirection::YPlus && a == ModelData::AxisDirection::YMinus))
+    {
+        return false;
+    }
+
+    if ((a == ModelData::AxisDirection::ZPlus && b == ModelData::AxisDirection::ZMinus) ||
+        (b == ModelData::AxisDirection::ZPlus && a == ModelData::AxisDirection::ZMinus))
+    {
+        return false;
+    }
+
+    return true;
+}
+
 Loader::Loader()
 {
     if (!shuffledSpareColor)
@@ -157,7 +185,7 @@ QVector<std::shared_ptr<Model>> Loader::open(const QString &fileName, const Open
         // TODO: solve this problem. Possibly adjust accordingly
         convertAxisDirection(forwardDirection, settings->FrontAxis, settings->FrontAxisSign);
 
-        if (upDirection == forwardDirection || (int)upDirection == (int)forwardDirection + 1 || (int)forwardDirection == (int)upDirection + 1)
+        if (!isCompatibleAxisDirection(upDirection, forwardDirection))
         {
             addNote(Note::Type::Error, QTranslator::tr("Incompatible axis directions %1 and %2. Will use default").arg(ModelData::axisDirectionToString(upDirection), ModelData::axisDirectionToString(forwardDirection)));
             qCritical() << Q_FUNC_INFO << "incompatible axis directions" << ModelData::axisDirectionToString(upDirection) << "and" << ModelData::axisDirectionToString(forwardDirection) << ". Will use default";
