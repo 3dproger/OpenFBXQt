@@ -207,7 +207,7 @@ void MainWindow::on_sceneTree_currentItemChanged(QTreeWidgetItem*, QTreeWidgetIt
 
 void MainWindow::updateInspector()
 {
-    QVBoxLayout& layout = *ui->inspectorLayout;
+    QVBoxLayout& layout = *ui->propertiesLayout;
     clearLayout(layout);
 
     QTreeWidgetItem* item = ui->sceneTree->currentItem();
@@ -232,17 +232,68 @@ void MainWindow::updateInspector()
     if (itemType == ItemType::Model)
     {
         ofbxqt::Model* model = (ofbxqt::Model*)object;
-        layout.addWidget(new QLabel("Model", this));
+
+        QHBoxLayout* titleLayout = new QHBoxLayout(this);
+        QLabel* labelIcon = new QLabel();
+        labelIcon->setPixmap(QPixmap(":/images/armature.png"));
+        titleLayout->addWidget(labelIcon);
+        titleLayout->addWidget(new QLabel(tr("Model"), this));
+        titleLayout->addItem(new QSpacerItem(10, 10, QSizePolicy::Policy::MinimumExpanding));
+        layout.addLayout(titleLayout);
+
+        if (model->material)
+        {
+            QString text;
+
+            if (model->material->diffuseTexture)
+            {
+                text += tr("Diffuse texture \"%1\"").arg(model->material->diffuseTexture->getFileName()) + "\n";
+            }
+
+            if (model->material->diffuseColor)
+            {
+                text += tr("Diffuse color \"%1\"").arg(model->material->diffuseColor->name()) + "\n";
+            }
+
+            if (model->material->normalTexture)
+            {
+                text += tr("Normal texture \"%1\"").arg(model->material->diffuseTexture->getFileName()) + "\n";
+            }
+
+            layout.addWidget(new QLabel(text, this));
+        }
+        else
+        {
+            layout.addWidget(new QLabel(tr("No material"), this));
+        }
     }
     else if (itemType == ItemType::Armature)
     {
         ofbxqt::Armature* armature = (ofbxqt::Armature*)object;
-        layout.addWidget(new QLabel("Armature", this));
+
+        QHBoxLayout* titleLayout = new QHBoxLayout(this);
+        QLabel* labelIcon = new QLabel();
+        labelIcon->setPixmap(QPixmap(":/images/armature.png"));
+        titleLayout->addWidget(labelIcon);
+        titleLayout->addWidget(new QLabel("Armature", this));
+        titleLayout->addItem(new QSpacerItem(10, 10, QSizePolicy::Policy::MinimumExpanding));
+        layout.addLayout(titleLayout);
+
+        qDebug() << Q_FUNC_INFO << "armature" << (uint64_t)armature;
+
+        layout.addWidget(new QLabel(tr("Joints count %1").arg(armature->getJoints().count()), this));
     }
     else if (itemType == ItemType::Joint)
     {
         ofbxqt::Joint* joint = (ofbxqt::Joint*)object;
-        layout.addWidget(new QLabel(joint->getName(), this));
+
+        QHBoxLayout* titleLayout = new QHBoxLayout(this);
+        QLabel* labelIcon = new QLabel();
+        labelIcon->setPixmap(QPixmap(":/images/joint.png"));
+        titleLayout->addWidget(labelIcon);
+        titleLayout->addWidget(new QLabel(joint->getName(), this));
+        titleLayout->addItem(new QSpacerItem(10, 10, QSizePolicy::Policy::MinimumExpanding));
+        layout.addLayout(titleLayout);
 
         {
             QSlider* slider = new QSlider(Qt::Orientation::Horizontal, this);

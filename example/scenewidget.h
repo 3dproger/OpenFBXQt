@@ -33,7 +33,7 @@ private:
     Camera camera;
 
     QPoint prevMousePos;
-    QVector2D mouseRotationSensitivity = QVector2D(0.5, 0.5);
+    QVector2D mouseRotationSensitivity = QVector2D(0.25, 0.25);
     qreal mouseWheelZoomSensitivity = 1.0;
 
 };

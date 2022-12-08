@@ -276,7 +276,7 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data, QHash<GLuint, Q
         }
     }
 
-    for (std::shared_ptr<Joint> joint : qAsConst(data.armature->joints))
+    for (const std::shared_ptr<Joint> &joint : qAsConst(data.armature->joints))
     {
         if (clustersByJoints.find(joint) == clustersByJoints.end())
         {
@@ -508,7 +508,7 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
 
     if (foundTooMuchJoints)
     {
-        addNote(Note::Type::Warning, QTranslator::tr("More than %1 joint weights per vertex not supported. Extra weights will be ignored. Mesh %2")
+        addNote(Note::Type::Info, QTranslator::tr("More than %1 joint weights per vertex not supported. Extra weights will be ignored. Mesh %2")
                           .arg(MaxJointsForVertex).arg(meshIndex));
         qWarning() << Q_FUNC_INFO << "more than" << MaxJointsForVertex << "joint weights per vertex not supported. Extra weights will be ignored, mesh" << meshIndex;
     }
@@ -545,17 +545,17 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
         qWarning() << Q_FUNC_INFO << "rawIndex less than zero but i == 0";
     }
 
-    if (data->armature)
-    {
-        data->armature->update();
-    }
-
     ModelDataStorage::data.append(data);
     std::shared_ptr<Model> model(new Model(data));
 
-    if (model->armature)
+    if (data->armature)
     {
-        model->armature->model = model;
+        data->armature->model = model;
+        data->armature->update();
+        model->armature = data->armature;
+
+        qDebug() << Q_FUNC_INFO << "armature" << (uint64_t)data->armature.get();
+        qDebug() << Q_FUNC_INFO << "armature" << (uint64_t)model->armature.get();
     }
 
     return model;

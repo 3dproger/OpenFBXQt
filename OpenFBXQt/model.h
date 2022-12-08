@@ -12,6 +12,7 @@ class Model : protected QOpenGLFunctions
 {
 public:
     std::shared_ptr<Armature> armature;
+    std::shared_ptr<Material> material;
 
     friend class Loader;
 
@@ -22,8 +23,6 @@ public:
 
 private:
     bool initializedGL = false;
-
-    std::shared_ptr<Material> material;
 
     std::shared_ptr<ModelData> data;
     QMatrix4x4 matrix;

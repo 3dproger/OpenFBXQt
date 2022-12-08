@@ -14,6 +14,7 @@ public:
     TextureInfo(const QImage& image, const QString& fileName);
 
     void initializeGL();
+    QString getFileName() const { return fileName; }
 
 private:
     const QImage image;
@@ -28,13 +29,12 @@ public:
     friend class Loader;
     friend class Model;
 
-    void initializeGL();
-
-private:
     std::unique_ptr<QColor> diffuseColor;
     std::shared_ptr<TextureInfo> diffuseTexture;
 
     std::shared_ptr<TextureInfo> normalTexture;
+
+    void initializeGL();
 };
 
 }
