@@ -235,7 +235,7 @@ void MainWindow::updateInspector()
 
         QHBoxLayout* titleLayout = new QHBoxLayout(this);
         QLabel* labelIcon = new QLabel();
-        labelIcon->setPixmap(QPixmap(":/images/armature.png"));
+        labelIcon->setPixmap(QPixmap(":/images/model.png"));
         titleLayout->addWidget(labelIcon);
         titleLayout->addWidget(new QLabel(tr("Model"), this));
         titleLayout->addItem(new QSpacerItem(10, 10, QSizePolicy::Policy::MinimumExpanding));

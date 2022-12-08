@@ -57,6 +57,7 @@ public:
 private:
     DataStorage(){}
 
+    // TODO: all data storages
     inline static std::map<QString, std::shared_ptr<TextureInfo>> textures; // <file name, texture>
     inline static QVector<std::shared_ptr<ModelData>> data = QVector<std::shared_ptr<ModelData>>(); // move to scene, make non static
 };
