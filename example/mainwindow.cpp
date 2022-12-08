@@ -147,7 +147,7 @@ void MainWindow::updateSceneTree()
     tree.clear();
     updateInspector();
     const ofbxqt::Scene& scene = ui->sceneWidget->scene;
-    const QVector<std::shared_ptr<ofbxqt::Model>>& models = scene.getModels();
+    const QVector<std::shared_ptr<ofbxqt::Model>>& models = scene.getTopLevelModels();
     if (models.isEmpty())
     {
         QTreeWidgetItem* item = new QTreeWidgetItem({ tr("Empty") });

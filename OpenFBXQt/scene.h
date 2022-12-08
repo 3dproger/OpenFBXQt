@@ -26,7 +26,7 @@ public:
     QVector<std::shared_ptr<Model>> open(const QString& fileName, const OpenModelConfig config = OpenModelConfig(), QList<ofbxqt::Note>* notes = nullptr);
     void clear();
 
-    const QVector<std::shared_ptr<Model>>& getModels() const { return models; }
+    const QVector<std::shared_ptr<Model>>& getTopLevelModels() const { return topLevelModels; }
 
     void paintGL();
 
@@ -44,7 +44,7 @@ private:
     qreal maxFps = 60;
 
     QColor backgroundColor = QColor(64, 64, 64);
-    QVector<std::shared_ptr<Model>> models;
+    QVector<std::shared_ptr<Model>> topLevelModels;
     QMatrix4x4 perspective;
     QMatrix4x4 projection;
 };

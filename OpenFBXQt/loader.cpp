@@ -152,19 +152,19 @@ QVector<std::shared_ptr<Model>> Loader::open(const QString &fileName, const Open
     const QFileInfo fileInfo(fileName);
     const QString absoluteDirectoryPath = fileInfo.absoluteDir().absolutePath();
 
-    QVector<std::shared_ptr<Model>> models;
+    QVector<std::shared_ptr<Model>> allModels;
     for (int i = 0; i < meshCount; ++i)
     {
         std::shared_ptr<Model> model = loadMesh(scene->getMesh(i), i, absoluteDirectoryPath);
         if (model)
         {
-            models.append(model);
+            allModels.append(model);
         }
     }
 
     scene->destroy();
 
-    return models;
+    return allModels;
 }
 
 void Loader::addNote(const Note::Type type, const QString &text)

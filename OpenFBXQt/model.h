@@ -14,6 +14,9 @@ public:
     std::shared_ptr<Armature> armature;
     std::shared_ptr<Material> material;
 
+    std::weak_ptr<Model> parent;
+    std::vector<std::shared_ptr<Model>> children;
+
     friend class Loader;
 
     Model(std::shared_ptr<ModelData> data);

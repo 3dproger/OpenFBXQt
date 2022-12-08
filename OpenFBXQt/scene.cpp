@@ -30,7 +30,7 @@ void Scene::initializeGL()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
 
-    for (std::shared_ptr<Model> model : qAsConst(models))
+    for (std::shared_ptr<Model> model : qAsConst(topLevelModels))
     {
         model->initializeGL();
     }
@@ -42,7 +42,7 @@ void Scene::paintGL()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (std::shared_ptr<Model> model : qAsConst(models))
+    for (std::shared_ptr<Model> model : qAsConst(topLevelModels))
     {
         model->paintGL(perspective * projection);
     }
@@ -90,7 +90,7 @@ void Scene::addModel(std::shared_ptr<Model> model)
         model->initializeGL();
     }
 
-    models.append(model);
+    topLevelModels.append(model);
 }
 
 QVector<std::shared_ptr<Model>> Scene::open(const QString &fileName, const OpenModelConfig config, QList<ofbxqt::Note>* notes)
@@ -112,7 +112,7 @@ QVector<std::shared_ptr<Model>> Scene::open(const QString &fileName, const OpenM
 
 void Scene::clear()
 {
-    models.clear();
+    topLevelModels.clear();
     DataStorage::data.clear();
     DataStorage::textures.clear();
 
