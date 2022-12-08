@@ -18,11 +18,11 @@ HEADERS += \
         $$PWD/OpenFBX/src/ofbx.h \
         $$PWD/armature.h \
         $$PWD/basescenewidget.h \
+        $$PWD/datastorage.h \
         $$PWD/joint.h \
         $$PWD/loader.h \
         $$PWD/material.h \
         $$PWD/model.h \
-        $$PWD/modeldatastorage.h \
         $$PWD/openfbxqt.h \
         $$PWD/scene.h
 

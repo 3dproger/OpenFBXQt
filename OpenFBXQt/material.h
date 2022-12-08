@@ -17,7 +17,7 @@ public:
     QString getFileName() const { return fileName; }
 
 private:
-    const QImage image;
+    QImage image;
     const QString fileName;
 
     std::shared_ptr<QOpenGLTexture> texture;

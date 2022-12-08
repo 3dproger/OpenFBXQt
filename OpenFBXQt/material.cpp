@@ -18,6 +18,7 @@ void TextureInfo::initializeGL()
     }
 
     texture = std::shared_ptr<QOpenGLTexture>(new QOpenGLTexture(image.mirrored()));
+    image = QImage();
 }
 
 void Material::initializeGL()

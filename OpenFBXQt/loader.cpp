@@ -548,7 +548,7 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
         qWarning() << Q_FUNC_INFO << "rawIndex less than zero but i == 0";
     }
 
-    ModelDataStorage::data.append(data);
+    DataStorage::data.append(data);
     std::shared_ptr<Model> model(new Model(data));
 
     if (data->armature)
@@ -595,7 +595,7 @@ void Loader::loadMaterial(const ofbx::Material *rawMaterial, std::shared_ptr<Mat
                 isSupportedTextureType = true;
                 if (config.loadDiffuseTexture)
                 {
-                    loadTexture(rawTexture, material->diffuseTexture, absoluteDirectoryPath, meshIndex, materialIndex, type);
+                    material->diffuseTexture = loadTexture(rawTexture, absoluteDirectoryPath, meshIndex, materialIndex, type);
                 }
                 break;
 
@@ -624,20 +624,14 @@ void Loader::loadMaterial(const ofbx::Material *rawMaterial, std::shared_ptr<Mat
     }
 }
 
-void Loader::loadTexture(const ofbx::Texture* rawTexture, std::shared_ptr<TextureInfo>& textureInfo, const QString &absoluteDirectoryPath, const int meshIndex, const int materialIndex, ofbx::Texture::TextureType type)
+std::shared_ptr<TextureInfo> Loader::loadTexture(const ofbx::Texture* rawTexture, const QString &absoluteDirectoryPath, const int meshIndex, const int materialIndex, ofbx::Texture::TextureType type)
 {
     const QString textureTypeStr = textureTypeToString(type);
     if (!rawTexture)
     {
         addNote(Note::Type::Error, QTranslator::tr("Internal error"));
         qCritical() << Q_FUNC_INFO << "raw texture is null, mesh index =" << meshIndex << ", material index =" << materialIndex << ", texture type =" << textureTypeStr;
-        return;
-    }
-
-    if (textureInfo)
-    {
-        addNote(Note::Type::Warning, QTranslator::tr("Internal warning"));
-        qWarning() << Q_FUNC_INFO << "texture info already exists, it will be rewrited, mesh index =" << meshIndex << ", material index =" << materialIndex << ", texture type =" << textureTypeStr;
+        return nullptr;
     }
 
     //TODO: implement search in relative directory path
@@ -649,7 +643,7 @@ void Loader::loadTexture(const ofbx::Texture* rawTexture, std::shared_ptr<Textur
         addNote(Note::Type::Error, QTranslator::tr("Empty texture image relative file name. Mesh %1, material %2, texture %3")
                           .arg(meshIndex).arg(materialIndex).arg(textureTypeStr));
         qCritical() << Q_FUNC_INFO << "empty texture image relative file name. Mesh " << meshIndex << ", material" << materialIndex << ", texture" << textureTypeStr;
-        return;
+        return nullptr;
     }
 
     const QString fileName = absoluteDirectoryPath + "/" + relativeFileName;
@@ -666,7 +660,7 @@ void Loader::loadTexture(const ofbx::Texture* rawTexture, std::shared_ptr<Textur
         addNote(Note::Type::Error, QTranslator::tr("File \"%1\" not found. Mesh %2, material %3, texture %4")
                           .arg(fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr));
         qCritical() << Q_FUNC_INFO << "file" << fileName << "not found. Mesh " << meshIndex << ", material" << materialIndex << ", texture" << textureTypeStr;
-        return;
+        return nullptr;
     }
 
     if (!fileInfo.isReadable())
@@ -674,21 +668,31 @@ void Loader::loadTexture(const ofbx::Texture* rawTexture, std::shared_ptr<Textur
         addNote(Note::Type::Error, QTranslator::tr("File \"%1\" not readable. Mesh %2, material %3, texture %4")
                           .arg(fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr));
         qCritical() << Q_FUNC_INFO << "file" << fileName << "not readable. Mesh " << meshIndex << ", material" << materialIndex << ", texture" << textureTypeStr;
-        return;
+        return nullptr;
     }
+
+    const auto it = DataStorage::textures.find(fileName);
+    if (it != DataStorage::textures.end())
+    {
+        return it->second;
+    }
+
     QImage image(fileName);
     if (image.isNull())
     {
         addNote(Note::Type::Error, QTranslator::tr("Failed to open image \"%1\". Mesh %2, material %3, texture %4")
                           .arg(fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr));
         qCritical() << Q_FUNC_INFO << "failed to open image" << fileName << ". Mesh " << meshIndex << ", material" << materialIndex << ", texture" << textureTypeStr;
-        return;
+        return nullptr;
     }
 
-    textureInfo = std::shared_ptr<TextureInfo>(new TextureInfo(image, fileName));
+    std::shared_ptr<TextureInfo> texture = std::shared_ptr<TextureInfo>(new TextureInfo(image, fileName));
+    DataStorage::textures[fileName] = texture;
 
     addNote(Note::Type::Info, QTranslator::tr("Opened %1 texture \"%2\". Mesh %3, material %4, texture %5")
                       .arg(textureTypeStr, fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr));
+
+    return texture;
 }
 
 void Loader::addVertexAttributeGLfloat(ModelData& data, const QString &nameForShader, const int tupleSize)

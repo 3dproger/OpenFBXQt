@@ -6,6 +6,7 @@
 #include <QOpenGLBuffer>
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
+#include <map>
 
 namespace ofbxqt
 {
@@ -46,7 +47,7 @@ struct ModelData
     mutable QOpenGLShaderProgram shader; // TODO: move to shaders storage
 };
 
-class ModelDataStorage
+class DataStorage
 {
 public:
     friend class Model;
@@ -54,8 +55,9 @@ public:
     friend class Scene;
 
 private:
-    ModelDataStorage(){}
+    DataStorage(){}
 
+    inline static std::map<QString, std::shared_ptr<TextureInfo>> textures; // <file name, texture>
     inline static QVector<std::shared_ptr<ModelData>> data = QVector<std::shared_ptr<ModelData>>(); // move to scene, make non static
 };
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "armature.h"
-#include "modeldatastorage.h"
+#include "datastorage.h"
 #include <QColor>
 #include <QOpenGLFunctions>
 

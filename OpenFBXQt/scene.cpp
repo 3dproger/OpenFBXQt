@@ -113,7 +113,7 @@ QVector<std::shared_ptr<Model>> Scene::open(const QString &fileName, const OpenM
 void Scene::clear()
 {
     models.clear();
-    ModelDataStorage::data.clear();
+    DataStorage::data.clear();
 
     if (onNeedUpdateCallback)
     {
