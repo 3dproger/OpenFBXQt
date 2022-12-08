@@ -29,8 +29,8 @@ private:
 
     OpenModelConfig config;
     QList<Note>* notes = nullptr;
-    ModelData::AxisDirection upDirection = ModelData::AxisDirection::YPlus;
-    ModelData::AxisDirection forwardDirection = ModelData::AxisDirection::ZMinus;
+    ModelData::AxisDirection upDirection = ModelData::AxisDirection::ZPlus;
+    ModelData::AxisDirection forwardDirection = ModelData::AxisDirection::YPlus;
 
     static DataStorage dataStorage;
 };

@@ -140,12 +140,21 @@ QVector<std::shared_ptr<Model>> Loader::open(const QString &fileName, const Open
         return QVector<std::shared_ptr<Model>>();
     }
 
-    upDirection = ModelData::AxisDirection::YPlus;
-    forwardDirection = ModelData::AxisDirection::ZMinus;
+    // This: up = Z+, forward = Y+
+    // Blender: up = Z+, forward = Y+
+    // Unity: up = Y+, forward = Z+
+
+    upDirection = ModelData::AxisDirection::ZPlus;
+    forwardDirection = ModelData::AxisDirection::YPlus;
     const ofbx::GlobalSettings* settings = scene->getGlobalSettings();
     if (settings)
     {
         convertAxisDirection(upDirection, settings->UpAxis, settings->UpAxisSign);
+
+        // Note from OpenFBX (ofbx.h file):
+        // this seems to be 1-2 in Autodesk (odd/even parity), and 0-2 in Blender (axis as in UpAxis)
+        // I recommend to ignore FrontAxis and use just UpVector
+        // TODO: solve this problem. Possibly adjust accordingly
         convertAxisDirection(forwardDirection, settings->FrontAxis, settings->FrontAxisSign);
     }
     else
