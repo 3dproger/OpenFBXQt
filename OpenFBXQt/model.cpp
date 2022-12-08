@@ -230,20 +230,6 @@ void Model::paintGL(const QMatrix4x4 &projection)
         data->shader.setUniformValue("u_color", QColor());
     }
 
-    if (needUpdateArmature)
-    {
-        if (armature)
-        {
-            armature->update();
-        }
-        else
-        {
-            qCritical() << Q_FUNC_INFO << "armature is null";
-        }
-
-        needUpdateArmature = false;
-    }
-
     if (armature)
     {
         const QVector<QMatrix4x4>& matrices = armature->jointsResultMatrices;

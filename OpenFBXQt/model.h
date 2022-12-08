@@ -26,8 +26,6 @@ private:
 
     std::shared_ptr<ModelData> data;
     QMatrix4x4 matrix;
-
-    bool needUpdateArmature = false;
 };
 
 }
