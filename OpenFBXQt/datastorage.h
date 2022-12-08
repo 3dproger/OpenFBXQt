@@ -47,6 +47,23 @@ struct ModelData
     mutable QOpenGLShaderProgram shader; // TODO: move to shaders storage
 
     enum class AxisDirection { XPlus, XMinus, YPlus, YMinus, ZPlus, ZMinus };
+    static QString axisDirectionToString(const AxisDirection ad)
+    {
+        switch (ad)
+        {
+        case ofbxqt::ModelData::AxisDirection::XPlus: return "+X";
+        case ofbxqt::ModelData::AxisDirection::XMinus: return "-X";
+        case ofbxqt::ModelData::AxisDirection::YPlus: return "+Y";
+        case ofbxqt::ModelData::AxisDirection::YMinus: return "-Y";
+        case ofbxqt::ModelData::AxisDirection::ZPlus: return "+Z";
+        case ofbxqt::ModelData::AxisDirection::ZMinus: return "-Z";
+        }
+
+        return "<UNKNOWN>";
+    }
+    static const ModelData::AxisDirection DefaultUpDirection = ModelData::AxisDirection::ZPlus;
+    static const ModelData::AxisDirection DefaultForwardDirection = ModelData::AxisDirection::YPlus;
+
     AxisDirection upDirection = AxisDirection::YPlus;
     AxisDirection forwardDirection = AxisDirection::ZMinus;
 };

@@ -140,12 +140,12 @@ QVector<std::shared_ptr<Model>> Loader::open(const QString &fileName, const Open
         return QVector<std::shared_ptr<Model>>();
     }
 
-    // This: up = Z+, forward = Y+
+    // TODO: need to add the ability to change the direction of the axes for the scene or software
     // Blender: up = Z+, forward = Y+
     // Unity: up = Y+, forward = Z+
 
-    upDirection = ModelData::AxisDirection::ZPlus;
-    forwardDirection = ModelData::AxisDirection::YPlus;
+    upDirection = ModelData::DefaultUpDirection;
+    forwardDirection = ModelData::DefaultForwardDirection;
     const ofbx::GlobalSettings* settings = scene->getGlobalSettings();
     if (settings)
     {
@@ -156,6 +156,15 @@ QVector<std::shared_ptr<Model>> Loader::open(const QString &fileName, const Open
         // I recommend to ignore FrontAxis and use just UpVector
         // TODO: solve this problem. Possibly adjust accordingly
         convertAxisDirection(forwardDirection, settings->FrontAxis, settings->FrontAxisSign);
+
+        if (upDirection == forwardDirection || (int)upDirection == (int)forwardDirection + 1 || (int)forwardDirection == (int)upDirection + 1)
+        {
+            addNote(Note::Type::Error, QTranslator::tr("Incompatible axis directions %1 and %2. Will use default").arg(ModelData::axisDirectionToString(upDirection), ModelData::axisDirectionToString(forwardDirection)));
+            qCritical() << Q_FUNC_INFO << "incompatible axis directions" << ModelData::axisDirectionToString(upDirection) << "and" << ModelData::axisDirectionToString(forwardDirection) << ". Will use default";
+
+            upDirection = ModelData::DefaultUpDirection;
+            forwardDirection = ModelData::DefaultForwardDirection;
+        }
     }
     else
     {
