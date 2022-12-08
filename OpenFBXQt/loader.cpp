@@ -151,7 +151,7 @@ QVector<std::shared_ptr<Model>> Loader::open(const QString &fileName, const Open
     {
         convertAxisDirection(upDirection, settings->UpAxis, settings->UpAxisSign);
 
-        // Note from OpenFBX (ofbx.h file):
+        // Note from OpenFBX (ofbx.h file) about forward axis:
         // this seems to be 1-2 in Autodesk (odd/even parity), and 0-2 in Blender (axis as in UpAxis)
         // I recommend to ignore FrontAxis and use just UpVector
         // TODO: solve this problem. Possibly adjust accordingly
