@@ -140,6 +140,20 @@ QVector<std::shared_ptr<Model>> Loader::open(const QString &fileName, const Open
         return QVector<std::shared_ptr<Model>>();
     }
 
+    upDirection = ModelData::AxisDirection::YPlus;
+    forwardDirection = ModelData::AxisDirection::ZMinus;
+    const ofbx::GlobalSettings* settings = scene->getGlobalSettings();
+    if (settings)
+    {
+        convertAxisDirection(upDirection, settings->UpAxis, settings->UpAxisSign);
+        convertAxisDirection(forwardDirection, settings->FrontAxis, settings->FrontAxisSign);
+    }
+    else
+    {
+        addNote(Note::Type::Error, QTranslator::tr("No file global settings"));
+        qCritical() << Q_FUNC_INFO << "No file global settings";
+    }
+
     const int meshCount = scene->getMeshCount();
     if (meshCount <= 0)
     {
@@ -558,9 +572,6 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
         data->armature->model = model;
         data->armature->update();
         model->armature = data->armature;
-
-        qDebug() << Q_FUNC_INFO << "armature" << (uint64_t)data->armature.get();
-        qDebug() << Q_FUNC_INFO << "armature" << (uint64_t)model->armature.get();
     }
 
     return model;
@@ -717,6 +728,36 @@ void Loader::addVertexAttributeGLfloat(ModelData& data, const QString &nameForSh
     data.vertexStride += tupleSize * sizeof(GLfloat);
 
     data.vertexAttributes.append(attribute);
+}
+
+void Loader::convertAxisDirection(ModelData::AxisDirection& value, const int axis, const int sign)
+{
+    if (axis != 0 && axis != 1 && axis != 2)
+    {
+        addNote(Note::Type::Error, QTranslator::tr("Wrong axis value %1").arg(axis));
+        qCritical() << Q_FUNC_INFO << "wrong axis value" << axis;
+        return;
+    }
+
+    if (sign != 1 && sign != -1)
+    {
+        addNote(Note::Type::Error, QTranslator::tr("Wrong axis sign %1").arg(sign));
+        qCritical() << Q_FUNC_INFO << "wrong axis sign" << sign;
+        return;
+    }
+
+    switch (axis)
+    {
+    case 0:
+        value = sign > 0 ? ModelData::AxisDirection::XPlus : ModelData::AxisDirection::XMinus;
+        break;
+    case 1:
+        value = sign > 0 ? ModelData::AxisDirection::YPlus : ModelData::AxisDirection::YMinus;
+        break;
+    case 2:
+        value = sign > 0 ? ModelData::AxisDirection::XPlus : ModelData::AxisDirection::ZMinus;
+        break;
+    }
 }
 
 }

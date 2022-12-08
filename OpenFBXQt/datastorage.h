@@ -45,6 +45,10 @@ struct ModelData
     mutable QOpenGLBuffer indexBuffer = QOpenGLBuffer(QOpenGLBuffer::IndexBuffer);
 
     mutable QOpenGLShaderProgram shader; // TODO: move to shaders storage
+
+    enum class AxisDirection { XPlus, XMinus, YPlus, YMinus, ZPlus, ZMinus };
+    AxisDirection upDirection = AxisDirection::YPlus;
+    AxisDirection forwardDirection = AxisDirection::ZMinus;
 };
 
 class DataStorage

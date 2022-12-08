@@ -275,8 +275,6 @@ void MainWindow::updateInspector()
         titleLayout->addItem(new QSpacerItem(10, 10, QSizePolicy::Policy::MinimumExpanding));
         layout.addLayout(titleLayout);
 
-        qDebug() << Q_FUNC_INFO << "armature" << (uint64_t)armature;
-
         layout.addWidget(new QLabel(tr("Joints count %1").arg(armature->getAllJoints().count()), this));
     }
     else if (itemType == ItemType::Joint)
