@@ -522,7 +522,7 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
         }
     }
 
-    QHash<GLuint, QVector<QPair<GLuint, GLfloat>>> jointsData;
+    QHash<GLuint, QVector<QPair<GLuint, GLfloat>>> jointsData; // <vertex index, QVector<QPair<joint index, joint weight>>>
 
     if (config.loadArmature)
     {
@@ -576,45 +576,39 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
 
         if (data->armature)
         {
+            int jointCountForVertex = 0;
+
             if (jointsData.contains(vertexIndex))
             {
-                const int jointCountForVertex = jointsData[vertexIndex].count();
+                jointCountForVertex = jointsData[vertexIndex].count();
                 if (jointCountForVertex > MaxJointsForVertex)
                 {
                     foundTooMuchJoints = true;
                 }
+            }
 
-                for (int jointNum = 0; jointNum < qMin(jointCountForVertex, MaxJointsForVertex); ++jointNum)
+            for (int jointIndex = 0; jointIndex < MaxJointsForVertex; ++jointIndex)
+            {
+                if (jointIndex < jointCountForVertex)
                 {
-                    rawVertexArray[idx++] = (GLfloat)jointsData[vertexIndex][jointNum].second;
+                    rawVertexArray[idx++] = (GLfloat)jointsData[vertexIndex][jointIndex].second;
                 }
-
-                for (int jointNum = jointCountForVertex; jointNum < MaxJointsForVertex; ++jointNum)
+                else
                 {
                     rawVertexArray[idx++] = (GLfloat)0.0;
                 }
-
-                for (int jointNum = 0; jointNum < qMin(jointCountForVertex, MaxJointsForVertex); ++jointNum)
-                {
-                    rawVertexArray[idx++] = (GLfloat)jointsData[vertexIndex][jointNum].first;
-                }
-
-                for (int jointNum = jointCountForVertex; jointNum < MaxJointsForVertex; ++jointNum)
-                {
-                    rawVertexArray[idx++] = (GLfloat)-1;
-                }
             }
-            else
-            {
-                rawVertexArray[idx++] = (GLfloat)0.0;
-                rawVertexArray[idx++] = (GLfloat)0.0;
-                rawVertexArray[idx++] = (GLfloat)0.0;
-                rawVertexArray[idx++] = (GLfloat)0.0;
 
-                rawVertexArray[idx++] = (GLfloat)-1;
-                rawVertexArray[idx++] = (GLfloat)-1;
-                rawVertexArray[idx++] = (GLfloat)-1;
-                rawVertexArray[idx++] = (GLfloat)-1;
+            for (int jointIndex = 0; jointIndex < MaxJointsForVertex; ++jointIndex)
+            {
+                if (jointIndex < jointCountForVertex)
+                {
+                    rawVertexArray[idx++] = (GLfloat)jointsData[vertexIndex][jointIndex].first;
+                }
+                else
+                {
+                    rawVertexArray[idx++] = (GLfloat)0.0;
+                }
             }
         }
     }
