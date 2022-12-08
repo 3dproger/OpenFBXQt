@@ -485,6 +485,32 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
         break;
     }
 
+    qDebug() << "up =" << ModelData::axisDirectionToString(upDirection);
+
+    switch (forwardDirection)
+    {
+    case ofbxqt::ModelData::AxisDirection::XPlus:
+        // TODO
+        break;
+    case ofbxqt::ModelData::AxisDirection::XMinus:
+        // TODO
+        break;
+    case ofbxqt::ModelData::AxisDirection::YPlus:
+        data->sourceMatrix.scale(1, 1, 1);
+        break;
+    case ofbxqt::ModelData::AxisDirection::YMinus:
+        data->sourceMatrix.scale(1, -1, 1);
+        break;
+    case ofbxqt::ModelData::AxisDirection::ZPlus:
+        // TODO
+        break;
+    case ofbxqt::ModelData::AxisDirection::ZMinus:
+        // TODO
+        break;
+    }
+
+    qDebug() << "forward =" << ModelData::axisDirectionToString(forwardDirection);
+
     if (config.loadTransform)
     {
         //data->sourceMatrix *= convertMatrix4x4(mesh->getLocalTransform());
