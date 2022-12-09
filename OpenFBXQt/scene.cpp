@@ -93,11 +93,11 @@ void Scene::addModel(std::shared_ptr<Model> model)
     topLevelModels.append(model);
 }
 
-QVector<std::shared_ptr<Model>> Scene::open(const QString &fileName, const OpenModelConfig config, QList<ofbxqt::Note>* notes)
+FileInfo Scene::open(const QString &fileName, const OpenModelConfig config)
 {
-    QVector<std::shared_ptr<Model>> topLevelModels = Loader().open(fileName, config, notes);
+    const FileInfo fileInfo = Loader().open(fileName, config);
 
-    for (const std::shared_ptr<Model>& model : qAsConst(topLevelModels))
+    for (const std::shared_ptr<Model>& model : qAsConst(fileInfo.topLevelModels))
     {
         addModel(model);
     }
@@ -107,7 +107,7 @@ QVector<std::shared_ptr<Model>> Scene::open(const QString &fileName, const OpenM
         onNeedUpdateCallback();
     }
 
-    return topLevelModels;
+    return fileInfo;
 }
 
 void Scene::clear()

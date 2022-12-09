@@ -9,12 +9,20 @@
 namespace ofbxqt
 {
 
+struct FileInfo
+{
+    QString absoluteFileName;
+    QString fileName;
+    QVector<std::shared_ptr<Model>> topLevelModels;
+    QList<Note> notes;
+};
+
 class Loader
 {
 public:
     Loader();
 
-    QVector<std::shared_ptr<Model>> open(const QString& fileName, const OpenModelConfig config = OpenModelConfig(), QList<Note>* notes = nullptr);
+    FileInfo open(const QString& fileName, const OpenModelConfig config = OpenModelConfig());
 
 private:
     void addNote(const Note::Type type, const QString& text);
@@ -28,9 +36,8 @@ private:
     void convertAxisDirection(ModelData::AxisDirection& value, const int axis, const int sign);
 
     OpenModelConfig config;
-    QList<Note>* notes = nullptr;
 
-    QString modelFileName;
+    FileInfo fileInfo;
     ModelData::AxisDirection upDirection = ModelData::DefaultUpDirection;
     ModelData::AxisDirection forwardDirection = ModelData::DefaultForwardDirection;
 

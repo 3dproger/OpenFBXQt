@@ -144,20 +144,21 @@ Loader::Loader()
     }
 }
 
-QVector<std::shared_ptr<Model>> Loader::open(const QString &fileName, const OpenModelConfig config_, QList<Note>* notes_)
+FileInfo Loader::open(const QString &fileName, const OpenModelConfig config_)
 {
     config = config_;
-    notes = notes_;
+
+    fileInfo = FileInfo();
+    fileInfo.absoluteFileName = fileName;
+    fileInfo.fileName = QFileInfo(fileName).fileName();
 
     QFile file(fileName);
     if (!file.open(QIODevice::ReadOnly))
     {
         addNote(Note::Type::Error, QTranslator::tr("Failed to open file \"%1\", error: \"%2\"").arg(fileName, file.errorString()));
         qCritical() << Q_FUNC_INFO << "failed to open file" << fileName << ", error:" << file.errorString();
-        return QVector<std::shared_ptr<Model>>();
+        return fileInfo;
     }
-
-    modelFileName = QFileInfo(fileName).fileName();
 
     const QByteArray rawData = file.readAll();
     file.close();
@@ -167,7 +168,7 @@ QVector<std::shared_ptr<Model>> Loader::open(const QString &fileName, const Open
     {
         addNote(Note::Type::Error, QTranslator::tr("No scene"));
         qCritical() << Q_FUNC_INFO << "no scene";
-        return QVector<std::shared_ptr<Model>>();
+        return fileInfo;
     }
 
     // TODO: need to add the ability to change the direction of the axes for the scene or software
@@ -208,11 +209,10 @@ QVector<std::shared_ptr<Model>> Loader::open(const QString &fileName, const Open
         scene->destroy();
         addNote(Note::Type::Error, QTranslator::tr("No meshes in scene"));
         qCritical() << Q_FUNC_INFO << "no meshes in scene";
-        return QVector<std::shared_ptr<Model>>();
+        return fileInfo;
     }
 
-    const QFileInfo fileInfo(fileName);
-    const QString absoluteDirectoryPath = fileInfo.absoluteDir().absolutePath();
+    const QString absoluteDirectoryPath = QFileInfo(fileName).absoluteDir().absolutePath();
 
     QVector<QPair<const ofbx::Mesh*, std::shared_ptr<Model>>> modelBinds;
 
@@ -261,26 +261,22 @@ QVector<std::shared_ptr<Model>> Loader::open(const QString &fileName, const Open
         }
     }
 
-    QVector<std::shared_ptr<Model>> topLevelModels;
     for (const std::shared_ptr<Model>& model : allModels)
     {
         if (model->parent.expired())
         {
-            topLevelModels.append(model);
+            fileInfo.topLevelModels.append(model);
         }
     }
 
     scene->destroy();
 
-    return topLevelModels;
+    return fileInfo;
 }
 
 void Loader::addNote(const Note::Type type, const QString &text)
 {
-    if (notes)
-    {
-        notes->append(Note(type, text));
-    }
+    fileInfo.notes.append(Note(type, text));
 }
 
 void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data, QHash<GLuint, QVector<QPair<GLuint, GLfloat>>>& resultJointsData)
@@ -508,13 +504,7 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
 
     std::shared_ptr<ModelData> data(new ModelData());
 
-    QString modelName = QString(mesh->name).trimmed();
-    if (modelName.isEmpty())
-    {
-        modelName = QString("%1_%2").arg(modelFileName).arg(meshIndex);
-    }
-
-    data->name = modelName;
+    data->name = QString(mesh->name);
 
     data->material = material;
     data->sourceMatrix = QMatrix4x4();

@@ -17,5 +17,6 @@
         <file>images/model.png</file>
         <file>images/armature.png</file>
         <file>images/texture.png</file>
+        <file>images/file.png</file>
     </qresource>
 </RCC>

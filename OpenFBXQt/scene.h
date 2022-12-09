@@ -23,7 +23,7 @@ public:
     void setProjection(const QMatrix4x4& matrix);
     QMatrix4x4 getProjection() const;
 
-    QVector<std::shared_ptr<Model>> open(const QString& fileName, const OpenModelConfig config = OpenModelConfig(), QList<ofbxqt::Note>* notes = nullptr);
+    FileInfo open(const QString& fileName, const OpenModelConfig config = OpenModelConfig());
     void clear();
 
     const QVector<std::shared_ptr<Model>>& getTopLevelModels() const { return topLevelModels; }

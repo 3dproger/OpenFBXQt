@@ -94,21 +94,20 @@ void MainWindow::open(const QString &fileName)
 
     ofbxqt::OpenModelConfig config;
 
-    QList<ofbxqt::Note> notes;
-    const QVector<std::shared_ptr<ofbxqt::Model>> models = scene.open(fileName, config, &notes);
+    const ofbxqt::FileInfo fileInfo = scene.open(fileName, config);
 
-    for (const ofbxqt::Note& note : qAsConst(notes))
+    for (const ofbxqt::Note& note : qAsConst(fileInfo.notes))
     {
         addLogMessage(note);
     }
 
-    if (models.isEmpty())
+    if (fileInfo.topLevelModels.isEmpty())
     {
         addLogMessage(ofbxqt::Note(ofbxqt::Note::Type::Error, tr("No open models")));
     }
     else
     {
-        addLogMessage(ofbxqt::Note(ofbxqt::Note::Type::Info, tr("Opened %1 top level model(s)").arg(models.count())));
+        addLogMessage(ofbxqt::Note(ofbxqt::Note::Type::Info, tr("Opened %1 top level model(s)").arg(fileInfo.topLevelModels.count())));
     }
 
     updateSceneTree();
