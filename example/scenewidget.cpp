@@ -21,7 +21,7 @@ void SceneWidget::mousePressEvent(QMouseEvent *event)
         return;
     }
 
-    if (!event->buttons().testFlag(Qt::LeftButton))
+    if (!event->buttons().testFlag(Qt::LeftButton) && !event->buttons().testFlag(Qt::RightButton))
     {
         return;
     }
@@ -68,10 +68,19 @@ void SceneWidget::mouseMoveEvent(QMouseEvent *event)
             camera.tilt = -180;
         }
 
-        prevMousePos = event->globalPos();
+        updateProjection();
+    }
+    else if (event->buttons().testFlag(Qt::MouseButton::RightButton))
+    {
+        QVector3D delta(event->globalPos() - prevMousePos);
+        delta = delta * mouseTranslationSensitivity;
+        delta.setY(-delta.y());
+        camera.translation += delta;
 
         updateProjection();
     }
+
+    prevMousePos = event->globalPos();
 }
 
 void SceneWidget::wheelEvent(QWheelEvent *event)
@@ -100,7 +109,7 @@ void SceneWidget::wheelEvent(QWheelEvent *event)
 void SceneWidget::updateProjection()
 {
     QMatrix4x4 matrix;
-    matrix.translate(0.0, 0.0, -22);
+    matrix.translate(camera.translation);
     matrix.rotate(camera.tilt, QVector3D(1, 0, 0));
     matrix.rotate(camera.yaw, QVector3D(0, 0, 1));
     matrix.scale(camera.zoom);
