@@ -27,6 +27,7 @@ public:
     void clear();
 
     const QVector<std::shared_ptr<Model>>& getTopLevelModels() const { return topLevelModels; }
+    const QVector<std::shared_ptr<ofbxqt::FileInfo>>& getFiles() { return files; }
 
     void paintGL();
 
@@ -44,6 +45,7 @@ private:
     qreal maxFps = 60;
 
     QColor backgroundColor = QColor(64, 64, 64);
+    QVector<std::shared_ptr<ofbxqt::FileInfo>> files;
     QVector<std::shared_ptr<Model>> topLevelModels;
     QMatrix4x4 perspective;
     QMatrix4x4 projection;

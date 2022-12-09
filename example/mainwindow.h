@@ -1,8 +1,7 @@
 #pragma once
 
 #include "openfbxqt.h"
-#include "joint.h"
-#include "model.h"
+#include "scene.h"
 #include <QMainWindow>
 #include <QTreeWidgetItem>
 
@@ -39,6 +38,7 @@ private:
     const QIcon warningIcon;
     const QIcon errorIcon;
 
+    const QIcon fileIcon;
     const QIcon jointIcon;
     const QIcon materialIcon;
     const QIcon modelIcon;

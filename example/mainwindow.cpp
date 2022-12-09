@@ -8,7 +8,7 @@
 namespace
 {
 
-enum class ItemType { NotSetted, Model, Armature, Joint };
+enum class ItemType { NotSetted, File, Model, Armature, Joint };
 static const int ItemTypeRole = Qt::UserRole + 1;
 static const int ItemPointerRole = Qt::UserRole + 2;
 
@@ -40,6 +40,7 @@ MainWindow::MainWindow(QWidget *parent)
     , infoIcon(":/images/Info.svg")
     , warningIcon(":/images/Warning.svg")
     , errorIcon(":/images/Error.svg")
+    , fileIcon(":/images/file.png")
     , jointIcon(":/images/joint.png")
     , materialIcon(":/images/material.png")
     , modelIcon(":/images/model.png")
@@ -145,18 +146,26 @@ void MainWindow::updateSceneTree()
     QTreeWidget& tree = *ui->sceneTree;
     tree.clear();
     updateInspector();
-    const ofbxqt::Scene& scene = ui->sceneWidget->scene;
-    const QVector<std::shared_ptr<ofbxqt::Model>>& topLevelModels = scene.getTopLevelModels();
-    if (topLevelModels.isEmpty())
+    const QVector<std::shared_ptr<ofbxqt::FileInfo>>& files = ui->sceneWidget->scene.getFiles();
+    if (files.isEmpty())
     {
         QTreeWidgetItem* item = new QTreeWidgetItem({ tr("Empty") });
         tree.addTopLevelItem(item);
         return;
     }
 
-    for (int i = 0; i < topLevelModels.count(); ++i)
+    for (const std::shared_ptr<ofbxqt::FileInfo>& file : files)
     {
-        tree.addTopLevelItem(createModelItem(topLevelModels[i]));
+        QTreeWidgetItem* fileItem = new QTreeWidgetItem({ file->fileName });
+        fileItem->setIcon(0, fileIcon);
+        fileItem->setData(0, ItemTypeRole, (int)ItemType::File);
+        fileItem->setData(0, ItemPointerRole, (uint64_t)file.get());
+        tree.addTopLevelItem(fileItem);
+
+        for (int i = 0; i < file->topLevelModels.count(); ++i)
+        {
+            fileItem->addChild(createModelItem(file->topLevelModels[i]));
+        }
     }
 
     updateInspector();
@@ -233,7 +242,23 @@ void MainWindow::updateInspector()
         return;
     }
 
-    if (itemType == ItemType::Model)
+    if (itemType == ItemType::File)
+    {
+        ofbxqt::FileInfo* file = (ofbxqt::FileInfo*)object;
+
+        QHBoxLayout* titleLayout = new QHBoxLayout(this);
+
+        QLabel* labelIcon = new QLabel();
+        labelIcon->setPixmap(QPixmap(":/images/file.png"));
+        titleLayout->addWidget(labelIcon);
+
+        QLabel* labelName = new QLabel(file->fileName, this);
+        labelName->setWordWrap(true);
+        titleLayout->addWidget(labelName);
+
+        layout.addLayout(titleLayout);
+    }
+    else if (itemType == ItemType::Model)
     {
         ofbxqt::Model* model = (ofbxqt::Model*)object;
 

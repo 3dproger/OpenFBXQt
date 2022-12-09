@@ -97,6 +97,8 @@ FileInfo Scene::open(const QString &fileName, const OpenModelConfig config)
 {
     const FileInfo fileInfo = Loader().open(fileName, config);
 
+    files.append(std::shared_ptr<FileInfo>(new FileInfo(fileInfo)));
+
     for (const std::shared_ptr<Model>& model : qAsConst(fileInfo.topLevelModels))
     {
         addModel(model);
@@ -113,6 +115,7 @@ FileInfo Scene::open(const QString &fileName, const OpenModelConfig config)
 void Scene::clear()
 {
     topLevelModels.clear();
+    files.clear();
     DataStorage::data.clear();
     DataStorage::textures.clear();
 
