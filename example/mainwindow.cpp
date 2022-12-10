@@ -4,6 +4,7 @@
 #include <QFileDialog>
 #include <QLabel>
 #include <QSlider>
+#include <QApplication>
 
 namespace
 {
@@ -48,6 +49,8 @@ MainWindow::MainWindow(QWidget *parent)
     , textureIcon(":/images/texture.png")
 {
     ui->setupUi(this);
+
+    setWindowTitle(QCoreApplication::applicationName() + " (library version \"" + ofbxqt::VersionLib + "\")");
 
     ui->bottomPanelSplitter->setCollapsible(0, false);
     ui->bottomPanelSplitter->setSizes({ 100, 0 });

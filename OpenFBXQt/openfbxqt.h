@@ -5,6 +5,8 @@
 namespace ofbxqt
 {
 
+static const char* VersionLib = "0.1";
+
 struct OpenModelConfig
 {
     bool loadTransform = true;

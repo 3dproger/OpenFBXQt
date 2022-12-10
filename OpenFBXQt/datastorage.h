@@ -61,6 +61,8 @@ struct ModelData
         case ofbxqt::ModelData::AxisDirection::ZMinus: return "-Z";
         }
 
+        qCritical() << Q_FUNC_INFO << "unknown axis direction" << (int)ad;
+
         return "<UNKNOWN>";
     }
     static const ModelData::AxisDirection DefaultUpDirection = ModelData::AxisDirection::ZPlus;

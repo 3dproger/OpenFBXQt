@@ -108,7 +108,7 @@ void SceneWidget::wheelEvent(QWheelEvent *event)
 
 void SceneWidget::updateProjection()
 {
-    QVector3D eye = QVector3D(0, -1000 / camera.zoom, 0);
+    QVector3D eye = QVector3D(0, -100 / camera.zoom, 0);
     QVector3D center = QVector3D(0, 0, 0);
 
     QMatrix4x4 rotationMatrix;
