@@ -35,7 +35,7 @@ private:
 
     QPoint prevMousePos;
 
-    QVector2D mouseTranslationSensitivity = QVector2D(0.5, 0.5);
+    QVector2D mouseTranslationSensitivity = QVector2D(1, 1);
     QVector2D mouseRotationSensitivity = QVector2D(0.25, 0.25);
     qreal mouseWheelZoomSensitivity = 1.0;
 };

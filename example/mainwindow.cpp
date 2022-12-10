@@ -55,6 +55,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->rightPanelSplitter->setCollapsible(0, false);
 
     updateSceneTree();
+
+    open("D:/Projects/openfbxqt/release_win32/axises_cube.fbx");
 }
 
 MainWindow::~MainWindow()
