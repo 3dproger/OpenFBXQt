@@ -12,7 +12,7 @@ attribute vec2 a_texcoord;
 attribute vec4 a_joint_weights;
 attribute vec4 a_joint_indices;
 
-const int MAX_JOINTS = 50; // do not use more than 50 to avoid problems on some mobile devices https://www.gitmemory.com/issue/mgsx-dev/gdx-gltf/7/562368545
+const int MAX_JOINTS = 100; // do not use more than 50 to avoid problems on some mobile devices https://www.gitmemory.com/issue/mgsx-dev/gdx-gltf/7/562368545
 uniform mat4 joints[MAX_JOINTS];
 
 varying vec3 v_position;
