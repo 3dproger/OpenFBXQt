@@ -39,7 +39,7 @@ private:
     std::function<void()> onNeedUpdateCallback = nullptr;
 
     const qreal nearDistance = 0.1;
-    const qreal farDistance = 10000.0;
+    const qreal farDistance = 100000.0;
     const qreal viewingAngle = 60.0;
 
     qreal maxFps = 60;

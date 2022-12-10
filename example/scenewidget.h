@@ -22,11 +22,11 @@ private:
 
     struct Camera
     {
-        qreal yaw = 0;
-        qreal tilt = 0;
+        qreal yaw = -30;
+        qreal tilt = 30;
         QVector3D translation = QVector3D(0, -22, 0);
 
-        static constexpr qreal minZoom = 0.01;
+        static constexpr qreal minZoom = 0.001;
         static constexpr qreal maxZoom = 100.0;
         qreal zoom = 1.0;
     };
