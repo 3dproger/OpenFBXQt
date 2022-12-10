@@ -652,7 +652,7 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
                 }
                 else
                 {
-                    rawVertexArray[idx++] = (GLfloat)0.0;
+                    rawVertexArray[idx++] = (GLfloat)-1;
                 }
             }
 
@@ -664,7 +664,7 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
                 }
                 else
                 {
-                    rawVertexArray[idx++] = (GLfloat)0.0;
+                    rawVertexArray[idx++] = (GLfloat)-1;
                 }
             }
         }
