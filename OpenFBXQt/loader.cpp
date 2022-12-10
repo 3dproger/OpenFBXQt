@@ -539,9 +539,9 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
         break;
     }
 
-    qDebug() << "up =" << ModelData::axisDirectionToString(upDirection);
+    //qDebug() << "up =" << ModelData::axisDirectionToString(upDirection);
 
-    switch (forwardDirection)
+    /*switch (forwardDirection) // TODO: fix
     {
     case ofbxqt::ModelData::AxisDirection::XPlus:
         // TODO
@@ -563,7 +563,7 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
         break;
     }
 
-    qDebug() << "forward =" << ModelData::axisDirectionToString(forwardDirection);
+    qDebug() << "forward =" << ModelData::axisDirectionToString(forwardDirection);*/
 
     if (config.loadTransform)
     {
