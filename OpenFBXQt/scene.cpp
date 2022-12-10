@@ -53,7 +53,6 @@ void Scene::resizeGL(int width, int height)
     const qreal aspect = qreal(width) / qreal(height ? height : 1);
 
     perspective = QMatrix4x4();
-    perspective.setToIdentity();
     perspective.perspective(viewingAngle, aspect, nearDistance, farDistance);
 
     if (onNeedUpdateCallback)

@@ -58,24 +58,24 @@ void SceneWidget::mouseMoveEvent(QMouseEvent *event)
         const float deltaY = (event->globalPos().y() - prevMousePos.y()) * mouseRotationSensitivity.y();
         camera.tilt += deltaY;
 
-        if (camera.tilt > 0)
+        if (camera.tilt > 90)
         {
-            camera.tilt = 0;
+            camera.tilt = 90;
         }
 
-        if (camera.tilt < -180)
+        if (camera.tilt < -90)
         {
-            camera.tilt = -180;
+            camera.tilt = -90;
         }
 
         updateProjection();
     }
     else if (event->buttons().testFlag(Qt::MouseButton::RightButton))
     {
-        QVector3D delta(event->globalPos() - prevMousePos);
-        delta = delta * mouseTranslationSensitivity;
-        delta.setY(-delta.y());
-        camera.translation += delta;
+        const QVector2D mouseDelta(QVector2D(event->globalPos() - prevMousePos) * mouseTranslationSensitivity);
+        const QVector3D delta(-mouseDelta.x(), 0, mouseDelta.y());
+
+        camera.translation += delta / camera.zoom;
 
         updateProjection();
     }
@@ -108,11 +108,41 @@ void SceneWidget::wheelEvent(QWheelEvent *event)
 
 void SceneWidget::updateProjection()
 {
+    qDebug() << "tilt = " << camera.tilt;
+    qDebug() << "zoom = " << camera.zoom;
+
+    QMatrix4x4 rotationMatrix;
+    rotationMatrix.rotate(camera.tilt, QVector3D(1, 0, 0));
+    rotationMatrix.rotate(camera.yaw, QVector3D(0, 0, 1));
+
+    QVector3D eye = QVector3D(0, -1000 / camera.zoom, 0);
+    QVector3D center = QVector3D(0, 0, 0);
+
+    eye = eye * rotationMatrix;
+
+    eye += camera.translation;
+    center += camera.translation;
+
+    QVector3D up(0, 0, 1);
+
+    if (camera.tilt == 90)
+    {
+        up = QVector3D(0, 1, 0);
+        QMatrix4x4 matrix;
+        matrix.rotate(camera.yaw, QVector3D(0, 0, 1));
+        up = up * matrix;
+    }
+
+    if (camera.tilt == -90)
+    {
+        up = QVector3D(0, -1, 0);
+        QMatrix4x4 matrix;
+        matrix.rotate(camera.yaw, QVector3D(0, 0, 1));
+        up = up * matrix;
+    }
+
     QMatrix4x4 matrix;
-    matrix.translate(camera.translation);
-    matrix.rotate(camera.tilt, QVector3D(1, 0, 0));
-    matrix.rotate(camera.yaw, QVector3D(0, 0, 1));
-    matrix.scale(camera.zoom);
+    matrix.lookAt(eye, center, up);
 
     scene.setProjection(matrix);
 }

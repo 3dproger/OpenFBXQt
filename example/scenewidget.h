@@ -23,8 +23,8 @@ private:
     struct Camera
     {
         qreal yaw = 0;
-        qreal tilt = -60;
-        QVector3D translation = QVector3D(0.0, 0.0, -22);
+        qreal tilt = 0;
+        QVector3D translation = QVector3D(0, -22, 0);
 
         static constexpr qreal minZoom = 0.01;
         static constexpr qreal maxZoom = 100.0;
@@ -35,7 +35,7 @@ private:
 
     QPoint prevMousePos;
 
-    QVector2D mouseTranslationSensitivity = QVector2D(0.05, 0.05);
+    QVector2D mouseTranslationSensitivity = QVector2D(0.5, 0.5);
     QVector2D mouseRotationSensitivity = QVector2D(0.25, 0.25);
     qreal mouseWheelZoomSensitivity = 1.0;
 };
