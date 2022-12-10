@@ -28,9 +28,4 @@ vec4 calc_spectacular(const vec4 color)
 void main()
 {
     gl_FragColor = calc_spectacular(texture2D(texture, v_texcoord));
-
-    if (gl_FragColor.a < 0.5)
-    {
-        discard;
-    }
 }
