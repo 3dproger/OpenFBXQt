@@ -600,7 +600,7 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
     data->vertexData.resize(data->vertexCount * data->vertexStride);
 
     static const int MaxJointsForVertex = 4;
-    bool foundTooMuchJoints = false;
+    int foundTooMuchJointsCount = -1;
 
     GLfloat* rawVertexArray = reinterpret_cast<GLfloat*>(data->vertexData.data());
     idx = 0;
@@ -629,7 +629,10 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
                 jointCountForVertex = jointsData[vertexIndex].count();
                 if (jointCountForVertex > MaxJointsForVertex)
                 {
-                    foundTooMuchJoints = true;
+                    if (jointCountForVertex > foundTooMuchJointsCount)
+                    {
+                        foundTooMuchJointsCount = jointCountForVertex;
+                    }
                 }
             }
 
@@ -659,11 +662,11 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
         }
     }
 
-    if (foundTooMuchJoints)
+    if (foundTooMuchJointsCount != -1)
     {
-        addNote(Note::Type::Info, QTranslator::tr("More than %1 joint weights per vertex not supported. Extra weights will be ignored. Mesh %2")
-                          .arg(MaxJointsForVertex).arg(meshIndex));
-        qWarning() << Q_FUNC_INFO << "more than" << MaxJointsForVertex << "joint weights per vertex not supported. Extra weights will be ignored, mesh" << meshIndex;
+        addNote(Note::Type::Info, QTranslator::tr("More than %1 joint weights per vertex not supported, found %2. Extra weights will be ignored. Mesh %3")
+                          .arg(foundTooMuchJointsCount).arg(MaxJointsForVertex).arg(meshIndex));
+        qWarning() << Q_FUNC_INFO << "more than" << MaxJointsForVertex << "joint weights per vertex not supported, found" << foundTooMuchJointsCount << ". Extra weights will be ignored, mesh" << meshIndex;
     }
 
     data->indexCount = geometry->getIndexCount();
