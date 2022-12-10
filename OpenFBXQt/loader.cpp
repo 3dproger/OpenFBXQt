@@ -371,6 +371,14 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data, QHash<GLuint, Q
         }
     }
 
+    static const int MaxJointsSupported = 100;
+    if (data.armature->allJoints.count() > MaxJointsSupported)
+    {
+        addNote(Note::Type::Error, QTranslator::tr("No more than %1 joints supported, found %2")
+                .arg(MaxJointsSupported).arg(data.armature->allJoints.count()));
+        qCritical() << Q_FUNC_INFO << "no more than" << MaxJointsSupported << "supported, found" << data.armature->allJoints.count();
+    }
+
     for (const std::shared_ptr<Joint> &joint : qAsConst(data.armature->allJoints))
     {
         if (clustersByJoints.find(joint) == clustersByJoints.end())
