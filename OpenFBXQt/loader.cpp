@@ -672,8 +672,8 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
 
     if (foundTooMuchJointsCount != -1)
     {
-        addNote(Note::Type::Info, QTranslator::tr("More than %1 joint weights per vertex not supported, found %2. Extra weights will be ignored. Mesh %3")
-                          .arg(foundTooMuchJointsCount).arg(MaxJointsForVertex).arg(meshIndex));
+        addNote(Note::Type::Warning, QTranslator::tr("More than %1 joint weights per vertex not supported, found %2. Extra weights will be ignored. Mesh %3")
+                          .arg(MaxJointsForVertex).arg(foundTooMuchJointsCount).arg(meshIndex));
         qWarning() << Q_FUNC_INFO << "more than" << MaxJointsForVertex << "joint weights per vertex not supported, found" << foundTooMuchJointsCount << ". Extra weights will be ignored, mesh" << meshIndex;
     }
 
