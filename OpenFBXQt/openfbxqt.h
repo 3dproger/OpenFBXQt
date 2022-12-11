@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QString>
+#include <QQuaternion>
 
 namespace ofbxqt
 {
@@ -44,5 +45,13 @@ private:
     Type type;
     QString text;
 };
+
+struct Transform
+{
+    QVector3D scale = QVector3D(1, 1, 1);
+    QQuaternion rotation;
+    QVector3D translation;
+};
+
 
 }

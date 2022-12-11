@@ -202,10 +202,10 @@ void Model::paintGL(const QMatrix4x4 &projection)
     }
 
     QVector3D v(0, 0, 0);
-    v = v.unproject(matrix * data->sourceMatrix, projection, QRect(0, 0, 1, 1));
+    v = v.unproject(parentMatrix * matrix * data->sourceMatrix, projection, QRect(0, 0, 1, 1));
 
     data->shader.setUniformValue("projection_pos", v);
-    data->shader.setUniformValue("model_projection_matrix", projection * matrix * data->sourceMatrix);
+    data->shader.setUniformValue("model_projection_matrix", projection * parentMatrix * matrix * data->sourceMatrix);
 
     if (material)
     {
@@ -279,6 +279,26 @@ QString Model::getName() const
     }
 
     return data->name;
+}
+
+void Model::setTransform(const Transform &transform_)
+{
+    transform = transform_;
+
+    matrix = QMatrix4x4();
+    matrix.scale(transform.scale);
+    matrix.rotate(transform.rotation);
+    matrix.translate(transform.translation);
+
+    for (const std::shared_ptr<Model>& child : qAsConst(children))
+    {
+        child->parentMatrix = matrix;
+    }
+}
+
+const Transform &Model::getTransform() const
+{
+    return transform;
 }
 
 }

@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QSlider>
 #include <QApplication>
+#include <QDoubleSpinBox>
 
 namespace
 {
@@ -311,6 +312,54 @@ void MainWindow::updateInspector()
         else
         {
             layout.addWidget(new QLabel(tr("No material"), this));
+        }
+
+        {
+            QDoubleSpinBox* spinBox = new QDoubleSpinBox(this);
+            layout.addWidget(spinBox);
+            spinBox->setMinimum(-1000000);
+            spinBox->setMaximum(1000000);
+            spinBox->setValue(model->getTransform().translation.x());
+
+            QObject::connect(spinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this, model](double value)
+            {
+                ofbxqt::Transform transform = model->getTransform();
+                transform.translation.setX(value);
+                model->setTransform(transform);
+                ui->sceneWidget->update();
+            });
+        }
+
+        {
+            QDoubleSpinBox* spinBox = new QDoubleSpinBox(this);
+            layout.addWidget(spinBox);
+            spinBox->setMinimum(-1000000);
+            spinBox->setMaximum(1000000);
+            spinBox->setValue(model->getTransform().translation.y());
+
+            QObject::connect(spinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this, model](double value)
+            {
+                ofbxqt::Transform transform = model->getTransform();
+                transform.translation.setY(value);
+                model->setTransform(transform);
+                ui->sceneWidget->update();
+            });
+        }
+
+        {
+            QDoubleSpinBox* spinBox = new QDoubleSpinBox(this);
+            layout.addWidget(spinBox);
+            spinBox->setMinimum(-1000000);
+            spinBox->setMaximum(1000000);
+            spinBox->setValue(model->getTransform().translation.z());
+
+            QObject::connect(spinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this, model](double value)
+            {
+                ofbxqt::Transform transform = model->getTransform();
+                transform.translation.setZ(value);
+                model->setTransform(transform);
+                ui->sceneWidget->update();
+            });
         }
     }
     else if (itemType == ItemType::Armature)

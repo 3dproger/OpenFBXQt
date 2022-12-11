@@ -1,5 +1,6 @@
 #pragma once
 
+#include "openfbxqt.h"
 #include "armature.h"
 #include "datastorage.h"
 #include <QColor>
@@ -25,11 +26,15 @@ public:
     void paintGL(const QMatrix4x4& projection);
 
     QString getName() const;
+    void setTransform(const Transform& transform);
+    const Transform& getTransform() const;
 
 private:
     bool initializedGL = false;
 
+    Transform transform;
     std::shared_ptr<ModelData> data;
+    QMatrix4x4 parentMatrix;
     QMatrix4x4 matrix;
 };
 
