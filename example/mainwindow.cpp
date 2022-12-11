@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "transformwidget.h"
 #include <QDebug>
 #include <QFileDialog>
 #include <QLabel>
@@ -314,53 +315,13 @@ void MainWindow::updateInspector()
             layout.addWidget(new QLabel(tr("No material"), this));
         }
 
+        TransformWidget* transformWidget = new TransformWidget(model->getTransform());
+        layout.addWidget(transformWidget);
+        QObject::connect(transformWidget, &TransformWidget::transformChanged, this, [this, transformWidget, model]()
         {
-            QDoubleSpinBox* spinBox = new QDoubleSpinBox(this);
-            layout.addWidget(spinBox);
-            spinBox->setMinimum(-1000000);
-            spinBox->setMaximum(1000000);
-            spinBox->setValue(model->getTransform().translation.x());
-
-            QObject::connect(spinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this, model](double value)
-            {
-                ofbxqt::Transform transform = model->getTransform();
-                transform.translation.setX(value);
-                model->setTransform(transform);
-                ui->sceneWidget->update();
-            });
-        }
-
-        {
-            QDoubleSpinBox* spinBox = new QDoubleSpinBox(this);
-            layout.addWidget(spinBox);
-            spinBox->setMinimum(-1000000);
-            spinBox->setMaximum(1000000);
-            spinBox->setValue(model->getTransform().translation.y());
-
-            QObject::connect(spinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this, model](double value)
-            {
-                ofbxqt::Transform transform = model->getTransform();
-                transform.translation.setY(value);
-                model->setTransform(transform);
-                ui->sceneWidget->update();
-            });
-        }
-
-        {
-            QDoubleSpinBox* spinBox = new QDoubleSpinBox(this);
-            layout.addWidget(spinBox);
-            spinBox->setMinimum(-1000000);
-            spinBox->setMaximum(1000000);
-            spinBox->setValue(model->getTransform().translation.z());
-
-            QObject::connect(spinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this, model](double value)
-            {
-                ofbxqt::Transform transform = model->getTransform();
-                transform.translation.setZ(value);
-                model->setTransform(transform);
-                ui->sceneWidget->update();
-            });
-        }
+            model->setTransform(transformWidget->getTransform());
+            ui->sceneWidget->update();
+        });
     }
     else if (itemType == ItemType::Armature)
     {

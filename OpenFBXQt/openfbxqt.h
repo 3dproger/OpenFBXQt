@@ -2,6 +2,7 @@
 
 #include <QString>
 #include <QQuaternion>
+#include <QMatrix4x4>
 
 namespace ofbxqt
 {
@@ -46,11 +47,77 @@ private:
     QString text;
 };
 
-struct Transform
+class Transform
 {
+public:
+
+    const QVector3D& getScale() const
+    {
+        return scale;
+    }
+
+    void setScale(const QVector3D& scale_)
+    {
+        scale = scale_;
+        updateMatrix();
+    }
+
+    const QVector3D& getTanslation() const
+    {
+        return translation;
+    }
+
+    void setTranslation(const QVector3D& translation_)
+    {
+        translation = translation_;
+        updateMatrix();
+    }
+
+    const QQuaternion& getRotation() const
+    {
+        return rotation;
+    }
+
+    void setRotation(const QQuaternion& rotation_)
+    {
+        rotation = rotation_;
+        eulerAngles = rotation.toEulerAngles();
+        updateMatrix();
+    }
+
+    void setEulerAngles(const QVector3D& eulerAngles_)
+    {
+        eulerAngles = eulerAngles_;
+        rotation = QQuaternion::fromEulerAngles(eulerAngles);
+        updateMatrix();
+    }
+
+    const QVector3D& getEulerAngles() const
+    {
+        return eulerAngles;
+    }
+
+    const QMatrix4x4& getMatrix() const
+    {
+        return matrix;
+    }
+
+private:
+    void updateMatrix()
+    {
+        matrix = QMatrix4x4();
+        matrix.scale(scale);
+        matrix.rotate(rotation);
+        matrix.translate(translation);
+    }
+
+    QMatrix4x4 matrix;
+
     QVector3D scale = QVector3D(1, 1, 1);
-    QQuaternion rotation;
     QVector3D translation;
+
+    QVector3D eulerAngles;
+    QQuaternion rotation;
 };
 
 

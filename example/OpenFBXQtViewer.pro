@@ -1,4 +1,4 @@
-QT       += core gui svg
+QT       += core gui svg 3drender
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -13,11 +13,13 @@ CONFIG += c++11
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
-    scenewidget.cpp
+    scenewidget.cpp \
+    transformwidget.cpp
 
 HEADERS += \
     mainwindow.h \
-    scenewidget.h
+    scenewidget.h \
+    transformwidget.h
 
 FORMS += \
     mainwindow.ui

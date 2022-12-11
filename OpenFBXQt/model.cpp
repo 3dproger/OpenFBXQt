@@ -1,4 +1,5 @@
 #include "model.h"
+#include <QSceneLoader>
 
 namespace ofbxqt
 {
@@ -285,10 +286,7 @@ void Model::setTransform(const Transform &transform_)
 {
     transform = transform_;
 
-    matrix = QMatrix4x4();
-    matrix.scale(transform.scale);
-    matrix.rotate(transform.rotation);
-    matrix.translate(transform.translation);
+    matrix = transform.getMatrix();
 
     for (const std::shared_ptr<Model>& child : qAsConst(children))
     {
