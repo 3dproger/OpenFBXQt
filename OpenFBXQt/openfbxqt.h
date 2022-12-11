@@ -51,6 +51,8 @@ class Transform
 {
 public:
 
+    friend Transform operator*(const Transform& a, const Transform& b);
+
     const QVector3D& getScale() const
     {
         return scale;
@@ -106,9 +108,9 @@ private:
     void updateMatrix()
     {
         matrix = QMatrix4x4();
-        matrix.scale(scale);
-        matrix.rotate(rotation);
         matrix.translate(translation);
+        matrix.rotate(rotation);
+        matrix.scale(scale);
     }
 
     QMatrix4x4 matrix;
@@ -120,5 +122,13 @@ private:
     QQuaternion rotation;
 };
 
+inline Transform operator*(const Transform& a, const Transform& b)
+{
+    Transform c;
+    c.translation = a.translation + b.translation;
+    c.scale = a.scale * b.scale;
+    c.setRotation(a.getRotation() * b.getRotation());
+    return c;
+}
 
 }

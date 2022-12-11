@@ -30,12 +30,13 @@ public:
     const Transform& getTransform() const;
 
 private:
+    void updateChildrenTransform(const Transform& transform);
+
     bool initializedGL = false;
 
+    Transform parentTransform;
     Transform transform;
     std::shared_ptr<ModelData> data;
-    QMatrix4x4 parentMatrix;
-    QMatrix4x4 matrix;
 };
 
 }
