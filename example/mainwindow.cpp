@@ -349,7 +349,15 @@ void MainWindow::updateInspector()
         titleLayout->addItem(new QSpacerItem(10, 10, QSizePolicy::Policy::MinimumExpanding));
         layout.addLayout(titleLayout);
 
+        TransformWidget* transformWidget = new TransformWidget(joint->getTransform());
+        layout.addWidget(transformWidget);
+        QObject::connect(transformWidget, &TransformWidget::transformChanged, this, [this, transformWidget, joint]()
         {
+            joint->setTransform(transformWidget->getTransform());
+            ui->sceneWidget->update();
+        });
+
+        /*{
             QSlider* slider = new QSlider(Qt::Orientation::Horizontal, this);
             layout.addWidget(slider);
             slider->setMinimum(-180);
@@ -416,7 +424,7 @@ void MainWindow::updateInspector()
                     qCritical() << Q_FUNC_INFO << "armature is null";
                 }
             });
-        }
+        }*/
     }
     else
     {

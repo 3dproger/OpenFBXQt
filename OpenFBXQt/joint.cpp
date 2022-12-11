@@ -11,6 +11,11 @@ void Joint::setRotation(const QQuaternion &rotation_)
     localTransformation.rotate(rotation);
 }
 
+void Joint::setTransform(const Transform &transform_)
+{
+    transform = transform_;
+}
+
 Joint::Joint(const QString& name_, const GLuint index_, const QMatrix4x4 &inverseBindMatrix_)
     : name(name_)
     , index(index_)

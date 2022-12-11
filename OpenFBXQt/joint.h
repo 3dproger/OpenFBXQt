@@ -1,5 +1,6 @@
 #pragma once
 
+#include "openfbxqt.h"
 #include <QString>
 #include <QOpenGLFunctions>
 #include <QMatrix4x4>
@@ -25,6 +26,9 @@ public:
     void setRotation(const QQuaternion& rotation);
     const QQuaternion& getRotation() const { return rotation; }
 
+    void setTransform(const Transform& transform);
+    const Transform& getTransform() const { return transform; }
+
 private:
     Joint(const QString& name, const GLuint index, const QMatrix4x4& inverseBindMatrix);
     void addChild(std::shared_ptr<Joint> joint);
@@ -35,6 +39,9 @@ private:
 
     QQuaternion rotation;
     QMatrix4x4 localTransformation;
+
+    Transform transform;
+    Transform parentTransform;
 };
 
 }
