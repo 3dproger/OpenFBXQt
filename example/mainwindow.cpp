@@ -56,7 +56,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->bottomPanelSplitter->setCollapsible(0, false);
     ui->bottomPanelSplitter->setSizes({ 100, 0 });
-    ui->rightPanelSplitter->setSizes({ 1000, 250 });
+    ui->rightPanelSplitter->setSizes({ 1000, 220 });
     ui->rightPanelSplitter->setCollapsible(0, false);
 
     updateSceneTree();
