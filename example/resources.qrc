@@ -18,5 +18,8 @@
         <file>images/armature.png</file>
         <file>images/texture.png</file>
         <file>images/file.png</file>
+        <file>images/rotation.png</file>
+        <file>images/scale.png</file>
+        <file>images/translation.png</file>
     </qresource>
 </RCC>
