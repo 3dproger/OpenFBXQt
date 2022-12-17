@@ -53,6 +53,11 @@ public:
 
     friend Transform operator*(const Transform& a, const Transform& b);
 
+    const QMatrix4x4& getResultMatrix() const
+    {
+        return resultMatrix;
+    }
+
     const QVector3D& getScale() const
     {
         return scale;
@@ -61,7 +66,7 @@ public:
     void setScale(const QVector3D& scale_)
     {
         scale = scale_;
-        updateMatrix();
+        updateResultMatrix();
     }
 
     const QVector3D& getTanslation() const
@@ -72,7 +77,7 @@ public:
     void setTranslation(const QVector3D& translation_)
     {
         translation = translation_;
-        updateMatrix();
+        updateResultMatrix();
     }
 
     const QQuaternion& getRotation() const
@@ -84,24 +89,19 @@ public:
     {
         rotation = rotation_;
         eulerAngles = rotation.toEulerAngles();
-        updateMatrix();
+        updateResultMatrix();
     }
 
     void setEulerAngles(const QVector3D& eulerAngles_)
     {
         eulerAngles = eulerAngles_;
         rotation = QQuaternion::fromEulerAngles(eulerAngles);
-        updateMatrix();
+        updateResultMatrix();
     }
 
     const QVector3D& getEulerAngles() const
     {
         return eulerAngles;
-    }
-
-    const QMatrix4x4& getMatrix() const
-    {
-        return matrix;
     }
 
     const QVector3D& getRotationPivot() const
@@ -112,7 +112,7 @@ public:
     void setRotationPivot(const QVector3D& rotationPivot_)
     {
         rotationPivot = rotationPivot_;
-        updateMatrix();
+        updateResultMatrix();
     }
 
     const QVector3D& getScalePivot() const
@@ -123,35 +123,50 @@ public:
     void setScalePivot(const QVector3D& scalePivot_)
     {
         scalePivot = scalePivot_;
-        updateMatrix();
+        updateResultMatrix();
+    }
+
+    const QMatrix4x4& getAdditionalMatrix() const
+    {
+        return additionalMatrix;
+    }
+
+    void setAdditionalMatrix(const QMatrix4x4& additionalMatrix_)
+    {
+        additionalMatrix = additionalMatrix_;
+        updateResultMatrix();
     }
 
 private:
-    void updateMatrix()
+    void updateResultMatrix()
     {
-        matrix = QMatrix4x4();
+        resultMatrix = QMatrix4x4();
 
-        matrix.translate(translation);
+        resultMatrix.translate(translation);
 
-        matrix.translate(rotationPivot);
-        matrix.rotate(rotation);
-        matrix.translate(-rotationPivot);
+        resultMatrix.translate(rotationPivot);
+        resultMatrix.rotate(rotation);
+        resultMatrix.translate(-rotationPivot);
 
-        matrix.translate(scalePivot);
-        matrix.scale(scale);
-        matrix.translate(-scalePivot);
+        resultMatrix.translate(scalePivot);
+        resultMatrix.scale(scale);
+        resultMatrix.translate(-scalePivot);
+
+        resultMatrix *= additionalMatrix;
     }
 
-    QMatrix4x4 matrix;
+    QMatrix4x4 resultMatrix;
+
+    QVector3D translation;
 
     QVector3D scale = QVector3D(1, 1, 1);
-    QVector3D translation;
+    QVector3D scalePivot;
 
     QVector3D eulerAngles;
     QQuaternion rotation;
-
     QVector3D rotationPivot;
-    QVector3D scalePivot;
+
+    QMatrix4x4 additionalMatrix;
 };
 
 inline Transform operator*(const Transform& a, const Transform& b)
