@@ -175,7 +175,6 @@ public:
         needUpdateResultMatrix = true;
     }
 
-private:
     void updateResultMatrix()
     {
         resultMatrix = additionalMatrix;
@@ -190,6 +189,8 @@ private:
         resultMatrix.scale(scale);
         resultMatrix.translate(-scalePivot);
     }
+
+private:
 
     bool needUpdateResultMatrix = false;
 
