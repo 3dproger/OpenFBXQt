@@ -51,7 +51,16 @@ class Transform
 {
 public:
 
+    enum class TransformOrder { TRS, };
+    enum class RotationOrder { XYZ, };
+
     friend Transform operator*(const Transform& a, const Transform& b);
+
+    Transform(const TransformOrder transformOrder_ = TransformOrder::TRS, const RotationOrder rotationOrder_ = RotationOrder::XYZ)
+        : transformOrder(transformOrder_)
+        , rotationOrder(rotationOrder_)
+    {
+    }
 
     const QMatrix4x4& getResultMatrix() const
     {
@@ -137,6 +146,28 @@ public:
         updateResultMatrix();
     }
 
+    TransformOrder getTransformOrder() const
+    {
+        return transformOrder;
+    }
+
+    void setTransformOrder(const TransformOrder transformOrder_)
+    {
+        transformOrder = transformOrder_;
+        updateResultMatrix();
+    }
+
+    RotationOrder getRotationOrder() const
+    {
+        return rotationOrder;
+    }
+
+    void setRotationOrder(const RotationOrder rotationOrder_)
+    {
+        rotationOrder = rotationOrder_;
+        updateResultMatrix();
+    }
+
 private:
     void updateResultMatrix()
     {
@@ -165,15 +196,9 @@ private:
     QVector3D rotationPivot;
 
     QMatrix4x4 additionalMatrix;
-};
 
-inline Transform operator*(const Transform& a, const Transform& b)
-{
-    Transform c;
-    c.translation = a.translation + b.translation;
-    c.scale = a.scale * b.scale;
-    c.setRotation(a.getRotation() * b.getRotation());
-    return c;
-}
+    TransformOrder transformOrder;
+    RotationOrder rotationOrder;
+};
 
 }
