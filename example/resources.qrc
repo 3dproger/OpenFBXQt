@@ -21,5 +21,6 @@
         <file>images/rotation.png</file>
         <file>images/scale.png</file>
         <file>images/translation.png</file>
+        <file>images/pivot.png</file>
     </qresource>
 </RCC>

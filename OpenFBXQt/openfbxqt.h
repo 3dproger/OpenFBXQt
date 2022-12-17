@@ -104,13 +104,42 @@ public:
         return matrix;
     }
 
+    const QVector3D& getRotationPivot() const
+    {
+        return rotationPivot;
+    }
+
+    void setRotationPivot(const QVector3D& rotationPivot_)
+    {
+        rotationPivot = rotationPivot_;
+        updateMatrix();
+    }
+
+    const QVector3D& getScalePivot() const
+    {
+        return scalePivot;
+    }
+
+    void setScalePivot(const QVector3D& scalePivot_)
+    {
+        scalePivot = scalePivot_;
+        updateMatrix();
+    }
+
 private:
     void updateMatrix()
     {
         matrix = QMatrix4x4();
+
         matrix.translate(translation);
+
+        matrix.translate(rotationPivot);
         matrix.rotate(rotation);
+        matrix.translate(-rotationPivot);
+
+        matrix.translate(scalePivot);
         matrix.scale(scale);
+        matrix.translate(-scalePivot);
     }
 
     QMatrix4x4 matrix;
@@ -120,6 +149,9 @@ private:
 
     QVector3D eulerAngles;
     QQuaternion rotation;
+
+    QVector3D rotationPivot;
+    QVector3D scalePivot;
 };
 
 inline Transform operator*(const Transform& a, const Transform& b)

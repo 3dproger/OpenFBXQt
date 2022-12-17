@@ -37,6 +37,8 @@ void TransformWidget::createWidgets()
     label->setAlignment(Qt::AlignmentFlag::AlignCenter);
     layout->addWidget(label, row, 3);
 
+    // Translation
+
     row++;
 
     label = new QLabel(this);
@@ -93,6 +95,8 @@ void TransformWidget::createWidgets()
             emit transformChanged();
         });
     }
+
+    // Scale
 
     row++;
 
@@ -151,6 +155,66 @@ void TransformWidget::createWidgets()
         });
     }
 
+    // Scale pivot
+
+    row++;
+
+    label = new QLabel(tr("Piv."), this);
+    layout->addWidget(label, row, 0);
+
+    {
+        QDoubleSpinBox* spinBox = new QDoubleSpinBox(this);
+        layout->addWidget(spinBox, row, 1);
+        spinBox->setSingleStep(10);
+        spinBox->setMinimum(-100000);
+        spinBox->setMaximum(100000);
+        spinBox->setValue(transform.getScalePivot().x());
+
+        QObject::connect(spinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double value)
+        {
+            QVector3D scalePivot = transform.getScalePivot();
+            scalePivot.setX(value);
+            transform.setScalePivot(scalePivot);
+            emit transformChanged();
+        });
+    }
+
+    {
+        QDoubleSpinBox* spinBox = new QDoubleSpinBox(this);
+        layout->addWidget(spinBox, row, 2);
+        spinBox->setSingleStep(10);
+        spinBox->setMinimum(-100000);
+        spinBox->setMaximum(100000);
+        spinBox->setValue(transform.getScalePivot().y());
+
+        QObject::connect(spinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double value)
+        {
+            QVector3D scalePivot = transform.getScalePivot();
+            scalePivot.setY(value);
+            transform.setScalePivot(scalePivot);
+            emit transformChanged();
+        });
+    }
+
+    {
+        QDoubleSpinBox* spinBox = new QDoubleSpinBox(this);
+        layout->addWidget(spinBox, row, 3);
+        spinBox->setSingleStep(10);
+        spinBox->setMinimum(-100000);
+        spinBox->setMaximum(100000);
+        spinBox->setValue(transform.getScalePivot().z());
+
+        QObject::connect(spinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double value)
+        {
+            QVector3D scalePivot = transform.getScalePivot();
+            scalePivot.setZ(value);
+            transform.setScalePivot(scalePivot);
+            emit transformChanged();
+        });
+    }
+
+    // Rotation
+
     row++;
 
     label = new QLabel(this);
@@ -204,6 +268,64 @@ void TransformWidget::createWidgets()
             QVector3D eulerAngles = transform.getEulerAngles();
             eulerAngles.setZ(value);
             transform.setEulerAngles(eulerAngles);
+            emit transformChanged();
+        });
+    }
+
+    // Rotation pivot
+
+    row++;
+
+    label = new QLabel(tr("Piv."), this);
+    layout->addWidget(label, row, 0);
+
+    {
+        QDoubleSpinBox* spinBox = new QDoubleSpinBox(this);
+        layout->addWidget(spinBox, row, 1);
+        spinBox->setSingleStep(10);
+        spinBox->setMinimum(-100000);
+        spinBox->setMaximum(100000);
+        spinBox->setValue(transform.getRotationPivot().x());
+
+        QObject::connect(spinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double value)
+        {
+            QVector3D rotationPivot = transform.getRotationPivot();
+            rotationPivot.setX(value);
+            transform.setRotationPivot(rotationPivot);
+            emit transformChanged();
+        });
+    }
+
+    {
+        QDoubleSpinBox* spinBox = new QDoubleSpinBox(this);
+        layout->addWidget(spinBox, row, 2);
+        spinBox->setSingleStep(10);
+        spinBox->setMinimum(-100000);
+        spinBox->setMaximum(100000);
+        spinBox->setValue(transform.getRotationPivot().y());
+
+        QObject::connect(spinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double value)
+        {
+            QVector3D rotationPivot = transform.getRotationPivot();
+            rotationPivot.setY(value);
+            transform.setRotationPivot(rotationPivot);
+            emit transformChanged();
+        });
+    }
+
+    {
+        QDoubleSpinBox* spinBox = new QDoubleSpinBox(this);
+        layout->addWidget(spinBox, row, 3);
+        spinBox->setSingleStep(10);
+        spinBox->setMinimum(-100000);
+        spinBox->setMaximum(100000);
+        spinBox->setValue(transform.getRotationPivot().z());
+
+        QObject::connect(spinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double value)
+        {
+            QVector3D rotationPivot = transform.getRotationPivot();
+            rotationPivot.setZ(value);
+            transform.setRotationPivot(rotationPivot);
             emit transformChanged();
         });
     }
