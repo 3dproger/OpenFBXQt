@@ -17,9 +17,6 @@ public:
     void initializeGL();
     void resizeGL(int width, int height);
 
-    void setMaxFps(qreal maxFps);
-    qreal getMaxFps() const;
-
     void setProjection(const QMatrix4x4& matrix);
     QMatrix4x4 getProjection() const;
 

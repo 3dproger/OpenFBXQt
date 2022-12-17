@@ -124,20 +124,4 @@ void Scene::clear()
     }
 }
 
-void ofbxqt::Scene::setMaxFps(qreal maxFps_)
-{
-    maxFps = maxFps_;
-
-    int interval = qFloor(1000.0 / maxFps);
-    if (interval <= 0)
-    {
-        interval = 1;
-    }
-}
-
-qreal Scene::getMaxFps() const
-{
-    return maxFps;
-}
-
 }
