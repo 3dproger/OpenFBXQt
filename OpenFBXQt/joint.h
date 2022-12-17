@@ -23,8 +23,6 @@ public:
 
     const QString& getName() const { return name; }
 
-    const QQuaternion& getRotation() const { return rotation; }
-
     void setTransform(const Transform& transform);
     const Transform& getTransform() const { return transform; }
 
@@ -36,7 +34,6 @@ private:
     GLuint index = 0;
     QMatrix4x4 inverseBindMatrix;
 
-    QQuaternion rotation;
     QMatrix4x4 localTransformation;
 
     Transform transform;
