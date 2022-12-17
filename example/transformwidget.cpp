@@ -1,7 +1,10 @@
 #include "transformwidget.h"
+#include "matrixwidget.h"
 #include <QGridLayout>
 #include <QDoubleSpinBox>
 #include <QLabel>
+#include <QPushButton>
+#include <QGroupBox>
 
 TransformWidget::TransformWidget(QWidget *parent)
     : QWidget{parent}
@@ -328,6 +331,36 @@ void TransformWidget::createWidgets()
             transform.setRotationPivot(rotationPivot);
             emit transformChanged();
         });
+    }
+
+    {
+        // Aditional matrix
+
+        row++;
+
+        MatrixWidget* matrixWidget = new MatrixWidget(transform.getAdditionalMatrix());
+        QObject::connect(matrixWidget, &MatrixWidget::matrixChanged, this, [this, matrixWidget]()
+        {
+            transform.setAdditionalMatrix(matrixWidget->getMatrix());
+            emit transformChanged();
+        });
+
+        QGroupBox* groupBox = new QGroupBox(tr("Additional matrix"), this);
+
+        QPushButton* button = new QPushButton(tr("Additional matrix editor"), this);
+        layout->addWidget(button, row, 1, 1, 3);
+        QObject::connect(button, &QPushButton::clicked, this, [groupBox]()
+        {
+            groupBox->setVisible(!groupBox->isVisible());
+        });
+
+        row++;
+
+        layout->addWidget(groupBox, row, 1, 1, 3);
+        groupBox->setLayout(new QVBoxLayout(groupBox));
+
+        groupBox->layout()->addWidget(matrixWidget);
+        groupBox->setVisible(false);
     }
 }
 

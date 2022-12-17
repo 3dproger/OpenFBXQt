@@ -17,9 +17,15 @@
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
+      <property name="handleWidth">
+       <number>8</number>
+      </property>
       <widget class="QSplitter" name="bottomPanelSplitter">
        <property name="orientation">
         <enum>Qt::Vertical</enum>
+       </property>
+       <property name="handleWidth">
+        <number>8</number>
        </property>
        <widget class="QFrame" name="frame">
         <property name="minimumSize">
@@ -116,6 +122,9 @@
               <property name="orientation">
                <enum>Qt::Vertical</enum>
               </property>
+              <property name="handleWidth">
+               <number>8</number>
+              </property>
               <property name="childrenCollapsible">
                <bool>false</bool>
               </property>
@@ -163,8 +172,8 @@
                      <rect>
                       <x>0</x>
                       <y>0</y>
-                      <width>378</width>
-                      <height>162</height>
+                      <width>376</width>
+                      <height>160</height>
                      </rect>
                     </property>
                     <layout class="QVBoxLayout" name="verticalLayout_7">

@@ -13,11 +13,13 @@ CONFIG += c++11
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
+    matrixwidget.cpp \
     scenewidget.cpp \
     transformwidget.cpp
 
 HEADERS += \
     mainwindow.h \
+    matrixwidget.h \
     scenewidget.h \
     transformwidget.h
 

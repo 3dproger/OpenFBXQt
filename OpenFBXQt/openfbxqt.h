@@ -140,7 +140,7 @@ public:
 private:
     void updateResultMatrix()
     {
-        resultMatrix = QMatrix4x4();
+        resultMatrix = additionalMatrix;
 
         resultMatrix.translate(translation);
 
@@ -151,8 +151,6 @@ private:
         resultMatrix.translate(scalePivot);
         resultMatrix.scale(scale);
         resultMatrix.translate(-scalePivot);
-
-        resultMatrix *= additionalMatrix;
     }
 
     QMatrix4x4 resultMatrix;
