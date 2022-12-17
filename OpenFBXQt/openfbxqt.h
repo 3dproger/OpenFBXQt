@@ -64,6 +64,13 @@ public:
 
     const QMatrix4x4& getResultMatrix() const
     {
+        if (needUpdateResultMatrix)
+        {
+            Transform* this_ = const_cast<Transform*>(this);
+            this_->updateResultMatrix();
+            this_->needUpdateResultMatrix = false;
+        }
+
         return resultMatrix;
     }
 
@@ -75,7 +82,7 @@ public:
     void setScale(const QVector3D& scale_)
     {
         scale = scale_;
-        updateResultMatrix();
+        needUpdateResultMatrix = true;
     }
 
     const QVector3D& getTanslation() const
@@ -86,7 +93,7 @@ public:
     void setTranslation(const QVector3D& translation_)
     {
         translation = translation_;
-        updateResultMatrix();
+        needUpdateResultMatrix = true;
     }
 
     const QQuaternion& getRotation() const
@@ -98,14 +105,14 @@ public:
     {
         rotation = rotation_;
         eulerAngles = rotation.toEulerAngles();
-        updateResultMatrix();
+        needUpdateResultMatrix = true;
     }
 
     void setEulerAngles(const QVector3D& eulerAngles_)
     {
         eulerAngles = eulerAngles_;
         rotation = QQuaternion::fromEulerAngles(eulerAngles);
-        updateResultMatrix();
+        needUpdateResultMatrix = true;
     }
 
     const QVector3D& getEulerAngles() const
@@ -121,7 +128,7 @@ public:
     void setRotationPivot(const QVector3D& rotationPivot_)
     {
         rotationPivot = rotationPivot_;
-        updateResultMatrix();
+        needUpdateResultMatrix = true;
     }
 
     const QVector3D& getScalePivot() const
@@ -132,7 +139,7 @@ public:
     void setScalePivot(const QVector3D& scalePivot_)
     {
         scalePivot = scalePivot_;
-        updateResultMatrix();
+        needUpdateResultMatrix = true;
     }
 
     const QMatrix4x4& getAdditionalMatrix() const
@@ -143,7 +150,7 @@ public:
     void setAdditionalMatrix(const QMatrix4x4& additionalMatrix_)
     {
         additionalMatrix = additionalMatrix_;
-        updateResultMatrix();
+        needUpdateResultMatrix = true;
     }
 
     TransformOrder getTransformOrder() const
@@ -154,7 +161,7 @@ public:
     void setTransformOrder(const TransformOrder transformOrder_)
     {
         transformOrder = transformOrder_;
-        updateResultMatrix();
+        needUpdateResultMatrix = true;
     }
 
     RotationOrder getRotationOrder() const
@@ -165,7 +172,7 @@ public:
     void setRotationOrder(const RotationOrder rotationOrder_)
     {
         rotationOrder = rotationOrder_;
-        updateResultMatrix();
+        needUpdateResultMatrix = true;
     }
 
 private:
@@ -183,6 +190,8 @@ private:
         resultMatrix.scale(scale);
         resultMatrix.translate(-scalePivot);
     }
+
+    bool needUpdateResultMatrix = false;
 
     QMatrix4x4 resultMatrix;
 
