@@ -34,8 +34,6 @@ private:
     GLuint index = 0;
     QMatrix4x4 inverseBindMatrix;
 
-    QMatrix4x4 localTransformation;
-
     Transform transform;
     Transform parentTransform;
 };

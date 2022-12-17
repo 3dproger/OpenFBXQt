@@ -7,8 +7,6 @@ namespace ofbxqt
 void Joint::setTransform(const Transform &transform_)
 {
     transform = transform_;
-
-    localTransformation = transform.getMatrix();
 }
 
 Joint::Joint(const QString& name_, const GLuint index_, const QMatrix4x4 &inverseBindMatrix_)
