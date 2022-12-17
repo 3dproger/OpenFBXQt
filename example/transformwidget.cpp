@@ -46,6 +46,7 @@ void TransformWidget::createWidgets()
 
     label = new QLabel(this);
     label->setPixmap(QPixmap(":/images/translation.png"));
+    label->setSizePolicy(QSizePolicy::Policy::Maximum, QSizePolicy::Policy::Maximum);
     layout->addWidget(label, row, 0);
 
     {
@@ -105,6 +106,7 @@ void TransformWidget::createWidgets()
 
     label = new QLabel(this);
     label->setPixmap(QPixmap(":/images/scale.png"));
+    label->setSizePolicy(QSizePolicy::Policy::Maximum, QSizePolicy::Policy::Maximum);
     layout->addWidget(label, row, 0);
 
     {
@@ -163,6 +165,7 @@ void TransformWidget::createWidgets()
     row++;
 
     label = new QLabel(tr("Piv."), this);
+    label->setSizePolicy(QSizePolicy::Policy::Maximum, QSizePolicy::Policy::Maximum);
     layout->addWidget(label, row, 0);
 
     {
@@ -222,6 +225,7 @@ void TransformWidget::createWidgets()
 
     label = new QLabel(this);
     label->setPixmap(QPixmap(":/images/rotation.png"));
+    label->setSizePolicy(QSizePolicy::Policy::Maximum, QSizePolicy::Policy::Maximum);
     layout->addWidget(label, row, 0);
 
     {
@@ -280,6 +284,7 @@ void TransformWidget::createWidgets()
     row++;
 
     label = new QLabel(tr("Piv."), this);
+    label->setSizePolicy(QSizePolicy::Policy::Maximum, QSizePolicy::Policy::Maximum);
     layout->addWidget(label, row, 0);
 
     {
