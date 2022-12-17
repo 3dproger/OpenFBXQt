@@ -23,7 +23,6 @@ public:
 
     const QString& getName() const { return name; }
 
-    void setRotation(const QQuaternion& rotation);
     const QQuaternion& getRotation() const { return rotation; }
 
     void setTransform(const Transform& transform);

@@ -261,7 +261,9 @@ FileInfo Loader::open(const QString &fileName, const OpenModelConfig config_)
         }
     }
 
-    for (const std::shared_ptr<Model>& model : allModels)
+    fileInfo.allModels = allModels;
+
+    for (const std::shared_ptr<Model>& model : qAsConst(allModels))
     {
         if (model->parent.expired())
         {

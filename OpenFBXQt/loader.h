@@ -14,6 +14,7 @@ struct FileInfo
     QString absoluteFileName;
     QString fileName;
     QVector<std::shared_ptr<Model>> topLevelModels;
+    QVector<std::shared_ptr<Model>> allModels;
     QList<Note> notes;
 };
 

@@ -46,6 +46,7 @@ void TransformWidget::createWidgets()
     {
         QDoubleSpinBox* spinBox = new QDoubleSpinBox(this);
         layout->addWidget(spinBox, row, 1);
+        spinBox->setSingleStep(10);
         spinBox->setMinimum(-100000);
         spinBox->setMaximum(100000);
         spinBox->setValue(transform.getTanslation().x());
@@ -62,6 +63,7 @@ void TransformWidget::createWidgets()
     {
         QDoubleSpinBox* spinBox = new QDoubleSpinBox(this);
         layout->addWidget(spinBox, row, 2);
+        spinBox->setSingleStep(10);
         spinBox->setMinimum(-100000);
         spinBox->setMaximum(100000);
         spinBox->setValue(transform.getTanslation().y());
@@ -78,9 +80,10 @@ void TransformWidget::createWidgets()
     {
         QDoubleSpinBox* spinBox = new QDoubleSpinBox(this);
         layout->addWidget(spinBox, row, 3);
+        spinBox->setSingleStep(10);
         spinBox->setMinimum(-100000);
         spinBox->setMaximum(100000);
-        spinBox->setValue(transform.getTanslation().y());
+        spinBox->setValue(transform.getTanslation().z());
 
         QObject::connect(spinBox, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [this](double value)
         {
@@ -157,6 +160,7 @@ void TransformWidget::createWidgets()
     {
         QDoubleSpinBox* spinBox = new QDoubleSpinBox(this);
         layout->addWidget(spinBox, row, 1);
+        spinBox->setSingleStep(10);
         spinBox->setMinimum(-180);
         spinBox->setMaximum(180);
         spinBox->setValue(transform.getEulerAngles().x());
@@ -173,6 +177,7 @@ void TransformWidget::createWidgets()
     {
         QDoubleSpinBox* spinBox = new QDoubleSpinBox(this);
         layout->addWidget(spinBox, row, 2);
+        spinBox->setSingleStep(10);
         spinBox->setMinimum(-180);
         spinBox->setMaximum(180);
         spinBox->setValue(transform.getEulerAngles().y());
@@ -189,6 +194,7 @@ void TransformWidget::createWidgets()
     {
         QDoubleSpinBox* spinBox = new QDoubleSpinBox(this);
         layout->addWidget(spinBox, row, 3);
+        spinBox->setSingleStep(10);
         spinBox->setMinimum(-180);
         spinBox->setMaximum(180);
         spinBox->setValue(transform.getEulerAngles().z());

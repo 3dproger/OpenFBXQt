@@ -263,6 +263,8 @@ void MainWindow::updateInspector()
 
         titleLayout->addItem(new QSpacerItem(10, 10, QSizePolicy::Policy::MinimumExpanding));
         layout.addLayout(titleLayout);
+
+        layout.addWidget(new QLabel(tr("Models count: %1").arg(file->allModels.count()), this));
     }
     else if (itemType == ItemType::Model)
     {
@@ -355,6 +357,7 @@ void MainWindow::updateInspector()
         QObject::connect(transformWidget, &TransformWidget::transformChanged, this, [this, transformWidget, joint]()
         {
             joint->setTransform(transformWidget->getTransform());
+            joint->armature.lock()->update();
             ui->sceneWidget->update();
         });
     }
