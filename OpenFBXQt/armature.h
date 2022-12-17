@@ -24,7 +24,7 @@ public:
 private:
     void update(std::shared_ptr<Joint>, const QMatrix4x4& parentMatrix = QMatrix4x4());
 
-    QVector<QMatrix4x4> jointsResultMatrices;
+    QVector<QMatrix4x4> jointsMatrices;
     QHash<QString, int> jointsByName; // <name, index>
     QVector<std::shared_ptr<Joint>> topLevelJoints;
     QVector<std::shared_ptr<Joint>> allJoints;

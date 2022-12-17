@@ -233,7 +233,7 @@ void Model::paintGL(const QMatrix4x4 &projection)
 
     if (armature)
     {
-        const QVector<QMatrix4x4>& matrices = armature->jointsResultMatrices;
+        const QVector<QMatrix4x4>& matrices = armature->jointsMatrices;
         if (matrices.count() > 0)
         {
             data->shader.setUniformValueArray("joints", matrices.data(), matrices.count());

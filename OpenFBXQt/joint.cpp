@@ -17,15 +17,4 @@ Joint::Joint(const QString& name_, const GLuint index_, const QMatrix4x4 &source
 
 }
 
-void Joint::addChild(std::shared_ptr<Joint> joint)
-{
-    if (!joint)
-    {
-        qCritical() << "child joint is null";
-        return;
-    }
-
-    children.append(joint);
-}
-
 }

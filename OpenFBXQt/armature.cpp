@@ -38,7 +38,7 @@ void Armature::update(std::shared_ptr<Joint> joint, const QMatrix4x4 &parentMatr
 
     const QMatrix4x4 matrix = parentMatrix * joint->sourceMatrix.inverted() * joint->getTransform().getMatrix() * joint->sourceMatrix;
 
-    jointsResultMatrices[joint->index] = matrix;
+    jointsMatrices[joint->index] = matrix;
 
     for (const std::shared_ptr<Joint> &child : qAsConst(joint->children))
     {

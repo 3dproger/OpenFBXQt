@@ -28,7 +28,6 @@ public:
 
 private:
     Joint(const QString& name, const GLuint index, const QMatrix4x4& sourceMatrix);
-    void addChild(std::shared_ptr<Joint> joint);
 
     QString name;
     GLuint index = 0;

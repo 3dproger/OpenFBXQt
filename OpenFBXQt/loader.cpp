@@ -328,7 +328,7 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data, QHash<GLuint, Q
         joint->armature = data.armature;
 
         clustersByJoints[joint] = cluster;
-        data.armature->jointsResultMatrices.append(QMatrix4x4());
+        data.armature->jointsMatrices.append(QMatrix4x4());
 
         objectsJoints.insert(object, joint);
 
@@ -361,7 +361,7 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data, QHash<GLuint, Q
             if (objectsJoints.contains(parent))
             {
                 std::shared_ptr<Joint> parentJoint = objectsJoints[parent];
-                parentJoint->addChild(joint);
+                parentJoint->children.append(joint);
                 joint->parent = parentJoint;
                 addedToParent = true;
             }
