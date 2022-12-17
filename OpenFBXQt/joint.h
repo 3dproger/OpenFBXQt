@@ -27,12 +27,12 @@ public:
     const Transform& getTransform() const { return transform; }
 
 private:
-    Joint(const QString& name, const GLuint index, const QMatrix4x4& inverseBindMatrix);
+    Joint(const QString& name, const GLuint index, const QMatrix4x4& sourceMatrix);
     void addChild(std::shared_ptr<Joint> joint);
 
     QString name;
     GLuint index = 0;
-    QMatrix4x4 inverseBindMatrix;
+    QMatrix4x4 sourceMatrix;
 
     Transform transform;
 };
