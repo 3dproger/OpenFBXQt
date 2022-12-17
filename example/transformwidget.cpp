@@ -103,7 +103,7 @@ void TransformWidget::createWidgets()
     {
         QDoubleSpinBox* spinBox = new QDoubleSpinBox(this);
         layout->addWidget(spinBox, row, 1);
-        spinBox->setMinimum(0.0);
+        spinBox->setMinimum(-100000);
         spinBox->setMaximum(100000);
         spinBox->setValue(transform.getScale().x());
         spinBox->setStepType(QDoubleSpinBox::StepType::AdaptiveDecimalStepType);
@@ -120,7 +120,7 @@ void TransformWidget::createWidgets()
     {
         QDoubleSpinBox* spinBox = new QDoubleSpinBox(this);
         layout->addWidget(spinBox, row, 2);
-        spinBox->setMinimum(0.0);
+        spinBox->setMinimum(-100000);
         spinBox->setMaximum(100000);
         spinBox->setValue(transform.getScale().y());
         spinBox->setStepType(QDoubleSpinBox::StepType::AdaptiveDecimalStepType);
@@ -137,7 +137,7 @@ void TransformWidget::createWidgets()
     {
         QDoubleSpinBox* spinBox = new QDoubleSpinBox(this);
         layout->addWidget(spinBox, row, 3);
-        spinBox->setMinimum(0.0);
+        spinBox->setMinimum(-100000);
         spinBox->setMaximum(100000);
         spinBox->setValue(transform.getScale().z());
         spinBox->setStepType(QDoubleSpinBox::StepType::AdaptiveDecimalStepType);
