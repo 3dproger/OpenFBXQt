@@ -51,8 +51,8 @@ class Transform
 {
 public:
 
-    enum class TransformOrder { TRS, };
-    enum class RotationOrder { XYZ, };
+    enum class TransformOrder { TRS, }; // TODO
+    enum class RotationOrder { XYZ, }; // TODO
 
     friend Transform operator*(const Transform& a, const Transform& b);
 
