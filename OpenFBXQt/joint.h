@@ -35,7 +35,6 @@ private:
     QMatrix4x4 inverseBindMatrix;
 
     Transform transform;
-    Transform parentTransform;
 };
 
 }
