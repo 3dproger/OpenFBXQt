@@ -1,0 +1,1 @@
+Warning: None triangle mesh: path869 (file: 'D:\Projects\openfbxqt\models\step1.fbx') []
