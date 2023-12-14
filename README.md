@@ -1,5 +1,5 @@
 # OpenFBXQt
-Lightweight engine for working with 3D graphics on Qt
+A lightweight engine for working with 3D graphics and skeletal animation on Qt without using a Assimp library. Features:
 - No Assimp or other additional dependencies
 - Integrated with Qt 5 (can be adapted for Qt6)
 - Skeletal animation
