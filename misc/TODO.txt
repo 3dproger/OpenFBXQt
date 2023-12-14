@@ -1,0 +1,15 @@
+* Transformation order
+* Rotation order
+* Check how the transformation of the parent will affect the descendants
+* Try using a different bootloader. Perhaps assimp, since for android I had to add a crutch
+* Deal with Front vector
+* Understand unit sizes
+* Understand the sizes of models
+* Load local transformation
+* Load pivots
+* shader storage
+* all data storage
+* fix relative directory path for textures
+* textures of normals, reflections, etc.
+* if you often close and open the model, then at some time the texture will not load and will be black
+* if you often close and open the model, it may crash
