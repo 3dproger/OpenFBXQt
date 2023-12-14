@@ -10,3 +10,14 @@ Viewer example:
 <p align="center">
   <img src="misc/animation.gif">
 </p>
+
+# Usage
+```
+ofbxqt::Scene& scene = ui->sceneWidget->scene;
+ofbxqt::OpenModelConfig config;
+const ofbxqt::FileInfo fileInfo = scene.open("awesome_3d_model.fbx", config);
+if (!fileInfo.topLevelModels.isEmpty())
+{
+    // here you can use 'fileInfo.topLevelModels' to access loaded objects
+}
+```
