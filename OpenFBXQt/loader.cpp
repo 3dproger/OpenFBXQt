@@ -135,6 +135,63 @@ static bool isCompatibleAxisDirection(const ModelData::AxisDirection a, const Mo
     return true;
 }
 
+template<typename T>
+static GLenum getGLTypeEnum()
+{
+    static_assert(
+        (std::is_same<T, GLbyte>::value ||
+         std::is_same<T, GLubyte>::value ||
+
+         std::is_same<T, GLshort>::value ||
+         std::is_same<T, GLushort>::value ||
+
+         std::is_same<T, GLint>::value ||
+         std::is_same<T, GLuint>::value ||
+
+         std::is_same<T, GLfloat>::value ||
+         std::is_same<T, GLdouble>::value
+         ), "unsupported type");
+
+    if (std::is_same<T, GLbyte>::value)
+    {
+        return GL_BYTE;
+    }
+    else if (std::is_same<T, GLubyte>::value)
+    {
+        return GL_UNSIGNED_BYTE;
+    }
+    else if (std::is_same<T, GLshort>::value)
+    {
+        return GL_SHORT;
+    }
+    else if (std::is_same<T, GLushort>::value)
+    {
+        return GL_UNSIGNED_SHORT;
+    }
+    else if (std::is_same<T, GLint>::value)
+    {
+        return GL_INT;
+    }
+    else if (std::is_same<T, GLuint>::value)
+    {
+        return GL_UNSIGNED_INT;
+    }
+    else if (std::is_same<T, GLfloat>::value)
+    {
+        return GL_FLOAT;
+    }
+    else if (std::is_same<T, GLdouble>::value)
+    {
+        return GL_DOUBLE;
+    }
+    else
+    {
+        qCritical() << Q_FUNC_INFO << "Unsupported attribute type";
+    }
+
+    return 0;
+}
+
 Loader::Loader()
 {
     if (!shuffledSpareColor)
@@ -595,45 +652,46 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
         }
     }
 
-    int idx = 0;
-
-    addVertexAttributeGLfloat(*data, "a_position", 3);
-    addVertexAttributeGLfloat(*data, "a_normal", 3);
+    addVertexAttribute<GLfloat>(*data, "a_position", 3);
+    addVertexAttribute<GLfloat>(*data, "a_normal", 3);
 
     const ofbx::Vec2Attributes& uvs = geometryData.getUVs();
     if (uvs.values)
     {
-        addVertexAttributeGLfloat(*data, "a_texcoord", 2);
+        addVertexAttribute<GLfloat>(*data, "a_texcoord", 2);
     }
 
     if (data->armature)
     {
-        addVertexAttributeGLfloat(*data, "a_joint_weights", 4);
-        addVertexAttributeGLfloat(*data, "a_joint_indices", 4);
+        addVertexAttribute<GLfloat>(*data, "a_joint_weights", 4);
+        addVertexAttribute<GLint>(*data, "a_joint_indices", 4);
     }
 
-    data->vertexCount = geometryData.getPositions().values_count;
+    data->vertexCount = positions.values_count;
     data->vertexData.resize(data->vertexCount * data->vertexStride);
 
     static const int MaxJointsForVertex = 4;
     int foundTooMuchJointsCount = -1;
 
     GLfloat* rawVertexArray = reinterpret_cast<GLfloat*>(data->vertexData.data());
-    idx = 0;
+    size_t idx = 0;
     for (int vertexIndex = 0; vertexIndex < data->vertexCount; ++vertexIndex)
     {
-        rawVertexArray[idx++] = (GLfloat)positions.values[vertexIndex].x;
-        rawVertexArray[idx++] = (GLfloat)positions.values[vertexIndex].y;
-        rawVertexArray[idx++] = (GLfloat)positions.values[vertexIndex].z;
+        const auto& vertex = positions.values[vertexIndex];
+        rawVertexArray[idx++] = vertex.x;
+        rawVertexArray[idx++] = vertex.y;
+        rawVertexArray[idx++] = vertex.z;
 
-        rawVertexArray[idx++] = (GLfloat)normals.values[vertexIndex].x;
-        rawVertexArray[idx++] = (GLfloat)normals.values[vertexIndex].y;
-        rawVertexArray[idx++] = (GLfloat)normals.values[vertexIndex].z;
+        const auto& normal = normals.values[vertexIndex];
+        rawVertexArray[idx++] = normal.x;
+        rawVertexArray[idx++] = normal.y;
+        rawVertexArray[idx++] = normal.z;
 
         if (uvs.values)
         {
-            rawVertexArray[idx++] = (GLfloat)uvs.values[vertexIndex].x;
-            rawVertexArray[idx++] = (GLfloat)uvs.values[vertexIndex].y;
+            const auto& uv = uvs.values[vertexIndex];
+            rawVertexArray[idx++] = uv.x;
+            rawVertexArray[idx++] = uv.y;
         }
 
         if (data->armature)
@@ -686,14 +744,14 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
     }
 
     data->indexCount = positions.count;
-    data->indexData.resize(data->indexCount * sizeof(GLuint));
-    GLuint* rawIndexArray = reinterpret_cast<GLuint*>(data->indexData.data());
+    data->indexData.resize(data->indexCount * sizeof(GLint));
+    GLint* rawIndexArray = reinterpret_cast<GLint*>(data->indexData.data());
     idx = 0;
 
     bool foundLessThenZero = false;
     for (int i = 0; i < data->indexCount; ++i)
     {
-        int rawIndex = positions.indices[i];
+        auto rawIndex = positions.indices[i];
 
         if (rawIndex < 0)
         {
@@ -708,7 +766,7 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
             }
         }
 
-        rawIndexArray[idx++] = (GLuint)rawIndex;
+        rawIndexArray[idx++] = (GLint)rawIndex;
     }
 
     if (foundLessThenZero)
@@ -863,14 +921,15 @@ std::shared_ptr<TextureInfo> Loader::loadTexture(const ofbx::Texture* rawTexture
     return texture;
 }
 
-void Loader::addVertexAttributeGLfloat(ModelData& data, const QString &nameForShader, const int tupleSize)
+template<typename T>
+void Loader::addVertexAttribute(ModelData& data, const QString &nameForShader, const int tupleSize)
 {
     int offset = 0;
 
     if (!data.vertexAttributes.isEmpty())
     {
         const VertexAttributeInfo& last = data.vertexAttributes.last();
-        offset = last.offset + last.tupleSize * sizeof(GLfloat);
+        offset = last.offset + last.tupleSize * sizeof(T);
     }
 
     VertexAttributeInfo attribute;
@@ -879,8 +938,14 @@ void Loader::addVertexAttributeGLfloat(ModelData& data, const QString &nameForSh
     attribute.nameForShader = nameForShader;
     attribute.tupleSize = tupleSize;
     attribute.offset = offset;
+    attribute.type = getGLTypeEnum<T>();
+    if (attribute.type == 0)
+    {
+        addNote(Note::Type::Error, QString("Unsupported attribute type '%1'").arg(typeid(T).name()));
+        qCritical() << Q_FUNC_INFO << "Unsupported attribute type '" << typeid(T).name() << "'";
+    }
 
-    data.vertexStride += tupleSize * sizeof(GLfloat);
+    data.vertexStride += tupleSize * sizeof(T);
 
     data.vertexAttributes.append(attribute);
 }

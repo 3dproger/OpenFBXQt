@@ -33,7 +33,8 @@ private:
     void loadMaterial(const ofbx::Material* rawMaterial, std::shared_ptr<Material> material, const int meshIndex, const int materialIndex, const QString& absoluteDirectoryPath);
     std::shared_ptr<TextureInfo> loadTexture(const ofbx::Texture* rawTexture, const QString& absoluteDirectoryPath, const int meshIndex, const int materialIndex, ofbx::Texture::TextureType type);
 
-    void addVertexAttributeGLfloat(ModelData& modelData, const QString& nameForShader, const int tupleSize);
+    template<typename T>
+    void addVertexAttribute(ModelData& modelData, const QString& nameForShader, const int tupleSize);
     void convertAxisDirection(ModelData::AxisDirection& value, const int axis, const int sign);
 
     OpenModelConfig config;

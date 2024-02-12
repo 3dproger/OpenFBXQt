@@ -98,9 +98,7 @@ void MainWindow::open(const QString &fileName)
 
     ofbxqt::Scene& scene = ui->sceneWidget->scene;
 
-    ofbxqt::OpenModelConfig config;
-
-    const ofbxqt::FileInfo fileInfo = scene.open(fileName, config);
+    const ofbxqt::FileInfo fileInfo = scene.open(fileName);
 
     for (const ofbxqt::Note& note : qAsConst(fileInfo.notes))
     {

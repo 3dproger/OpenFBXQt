@@ -17,7 +17,7 @@ class Loader;
 struct VertexAttributeInfo
 {
     QString nameForShader;
-    static const GLenum type = GL_FLOAT;
+    GLenum type = GL_FLOAT;
     int offset = 0;
     int tupleSize = 0;
 };
