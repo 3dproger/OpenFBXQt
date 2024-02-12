@@ -496,15 +496,7 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
         return nullptr;
     }
 
-    const ofbx::Geometry* geometry = mesh->getGeometry();
-    if (!geometry)
-    {
-        addNote(Note::Type::Error, QTranslator::tr("No geometry. Mesh %1").arg(meshIndex));
-        qCritical() << Q_FUNC_INFO << "no geometry. Mesh" << meshIndex;
-        return nullptr;
-    }
-
-    const ofbx::GeometryData& geometryData = geometry->getGeometryData();
+    const ofbx::GeometryData& geometryData = mesh->getGeometryData();
 
     const ofbx::Vec3Attributes& positions = geometryData.getPositions();
     if (!positions.values)
@@ -645,7 +637,7 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
 
     if (config.loadArmature)
     {
-        const ofbx::Skin* skin = geometry->getSkin();
+        const ofbx::Skin* skin = mesh->getSkin();
         if (skin)
         {
             loadJoints(skin, *data, jointsData);
