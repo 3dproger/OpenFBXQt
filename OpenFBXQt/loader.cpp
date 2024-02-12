@@ -63,7 +63,7 @@ static QList<QColor> spareColors =
     QColor(38, 50, 56),
 };
 
-static QMatrix4x4 convertMatrix4x4(const ofbx::Matrix& source)
+static QMatrix4x4 convertMatrix4x4(const ofbx::DMatrix& source)
 {
     return QMatrix4x4(
             source.m[0],  source.m[4],  source.m[8],  source.m[12],
@@ -163,7 +163,7 @@ FileInfo Loader::open(const QString &fileName, const OpenModelConfig config_)
     const QByteArray rawData = file.readAll();
     file.close();
 
-    ofbx::IScene* scene = ofbx::load((ofbx::u8*)rawData.constData(), rawData.size(), (ofbx::u64)ofbx::LoadFlags::TRIANGULATE);
+    ofbx::IScene* scene = ofbx::load((ofbx::u8*)rawData.constData(), rawData.size(), (ofbx::u64)ofbx::LoadFlags::NONE);
     if (!scene)
     {
         addNote(Note::Type::Error, QTranslator::tr("No scene"));
@@ -447,27 +447,28 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
         return nullptr;
     }
 
-    const ofbx::Vec3* positions = geometry->getVertices();
-    if (!positions)
+    const ofbx::GeometryData& geometryData = geometry->getGeometryData();
+
+    const ofbx::Vec3Attributes& positions = geometryData.getPositions();
+    if (!positions.values)
     {
-        addNote(Note::Type::Error, QTranslator::tr("No positions. Mesh %1").arg(meshIndex));
-        qCritical() << Q_FUNC_INFO << "no positions. Mesh" << meshIndex;
+        addNote(Note::Type::Error, QTranslator::tr("No positions values. Mesh %1").arg(meshIndex));
+        qCritical() << Q_FUNC_INFO << "no positions values. Mesh" << meshIndex;
         return nullptr;
     }
 
-    const int* indices = geometry->getFaceIndices();
-    if (!indices)
+    if (!positions.indices)
     {
-        addNote(Note::Type::Error, QTranslator::tr("No indices. Mesh %1").arg(meshIndex));
-        qCritical() << Q_FUNC_INFO << "no indices. Mesh" << meshIndex;
+        addNote(Note::Type::Error, QTranslator::tr("No positions indices. Mesh %1").arg(meshIndex));
+        qCritical() << Q_FUNC_INFO << "no positions indices. Mesh" << meshIndex;
         return nullptr;
     }
 
-    const ofbx::Vec3* normals = geometry->getNormals();
-    if (!normals)
+    const ofbx::Vec3Attributes& normals = geometryData.getNormals();
+    if (!normals.values)
     {
-        addNote(Note::Type::Error, QTranslator::tr("No normals. Mesh %1").arg(meshIndex));
-        qCritical() << Q_FUNC_INFO << "no normals. Mesh" << meshIndex;
+        addNote(Note::Type::Error, QTranslator::tr("No normals values. Mesh %1").arg(meshIndex));
+        qCritical() << Q_FUNC_INFO << "no normals values. Mesh" << meshIndex;
         return nullptr;
     }
 
@@ -599,8 +600,8 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
     addVertexAttributeGLfloat(*data, "a_position", 3);
     addVertexAttributeGLfloat(*data, "a_normal", 3);
 
-    const ofbx::Vec2* texcoord = geometry->getUVs();
-    if (texcoord)
+    const ofbx::Vec2Attributes& uvs = geometryData.getUVs();
+    if (uvs.values)
     {
         addVertexAttributeGLfloat(*data, "a_texcoord", 2);
     }
@@ -611,7 +612,7 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
         addVertexAttributeGLfloat(*data, "a_joint_indices", 4);
     }
 
-    data->vertexCount = geometry->getVertexCount();
+    data->vertexCount = geometryData.getPositions().values_count;
     data->vertexData.resize(data->vertexCount * data->vertexStride);
 
     static const int MaxJointsForVertex = 4;
@@ -621,18 +622,18 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
     idx = 0;
     for (int vertexIndex = 0; vertexIndex < data->vertexCount; ++vertexIndex)
     {
-        rawVertexArray[idx++] = (GLfloat)positions[vertexIndex].x;
-        rawVertexArray[idx++] = (GLfloat)positions[vertexIndex].y;
-        rawVertexArray[idx++] = (GLfloat)positions[vertexIndex].z;
+        rawVertexArray[idx++] = (GLfloat)positions.values[vertexIndex].x;
+        rawVertexArray[idx++] = (GLfloat)positions.values[vertexIndex].y;
+        rawVertexArray[idx++] = (GLfloat)positions.values[vertexIndex].z;
 
-        rawVertexArray[idx++] = (GLfloat)normals[vertexIndex].x;
-        rawVertexArray[idx++] = (GLfloat)normals[vertexIndex].y;
-        rawVertexArray[idx++] = (GLfloat)normals[vertexIndex].z;
+        rawVertexArray[idx++] = (GLfloat)normals.values[vertexIndex].x;
+        rawVertexArray[idx++] = (GLfloat)normals.values[vertexIndex].y;
+        rawVertexArray[idx++] = (GLfloat)normals.values[vertexIndex].z;
 
-        if (texcoord)
+        if (uvs.values)
         {
-            rawVertexArray[idx++] = (GLfloat)texcoord[vertexIndex].x;
-            rawVertexArray[idx++] = (GLfloat)texcoord[vertexIndex].y;
+            rawVertexArray[idx++] = (GLfloat)uvs.values[vertexIndex].x;
+            rawVertexArray[idx++] = (GLfloat)uvs.values[vertexIndex].y;
         }
 
         if (data->armature)
@@ -684,7 +685,7 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
         qWarning() << Q_FUNC_INFO << "more than" << MaxJointsForVertex << "joint weights per vertex not supported, found" << foundTooMuchJointsCount << ". Extra weights will be ignored, mesh" << meshIndex;
     }
 
-    data->indexCount = geometry->getIndexCount();
+    data->indexCount = positions.count;
     data->indexData.resize(data->indexCount * sizeof(GLuint));
     GLuint* rawIndexArray = reinterpret_cast<GLuint*>(data->indexData.data());
     idx = 0;
@@ -692,13 +693,13 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
     bool foundLessThenZero = false;
     for (int i = 0; i < data->indexCount; ++i)
     {
-        int rawIndex = indices[i];
+        int rawIndex = positions.indices[i];
 
         if (rawIndex < 0)
         {
             if (i > 0)
             {
-                rawIndex = indices[i - 1] + 1;
+                rawIndex = positions.indices[i - 1] + 1;
             }
             else
             {

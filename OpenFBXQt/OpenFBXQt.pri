@@ -2,8 +2,10 @@ QT += opengl
 
 INCLUDEPATH += $$PWD
 
+#CONFIG += c++17
+
 SOURCES += \
-        $$PWD/OpenFBX/src/miniz.c \
+        $$PWD/OpenFBX/src/libdeflate.c \
         $$PWD/OpenFBX/src/ofbx.cpp \
         $$PWD/armature.cpp \
         $$PWD/basescenewidget.cpp \
@@ -14,7 +16,7 @@ SOURCES += \
         $$PWD/scene.cpp
 
 HEADERS += \
-        $$PWD/OpenFBX/src/miniz.h \
+        $$PWD/OpenFBX/src/libdeflate.h \
         $$PWD/OpenFBX/src/ofbx.h \
         $$PWD/armature.h \
         $$PWD/basescenewidget.h \
