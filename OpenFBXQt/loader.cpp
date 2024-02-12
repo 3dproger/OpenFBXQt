@@ -664,7 +664,7 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
     if (data->armature)
     {
         addVertexAttribute<GLfloat>(*data, "a_joint_weights", 4);
-        addVertexAttribute<GLint>(*data, "a_joint_indices", 4);
+        addVertexAttribute<GLfloat>(*data, "a_joint_indices", 4);
     }
 
     data->vertexCount = positions.values_count;
@@ -929,7 +929,7 @@ void Loader::addVertexAttribute(ModelData& data, const QString &nameForShader, c
     if (!data.vertexAttributes.isEmpty())
     {
         const VertexAttributeInfo& last = data.vertexAttributes.last();
-        offset = last.offset + last.tupleSize * sizeof(T);
+        offset = last.offset + last.elemSize;
     }
 
     VertexAttributeInfo attribute;
@@ -937,6 +937,7 @@ void Loader::addVertexAttribute(ModelData& data, const QString &nameForShader, c
     attribute = VertexAttributeInfo();
     attribute.nameForShader = nameForShader;
     attribute.tupleSize = tupleSize;
+    attribute.elemSize = tupleSize * sizeof(T);
     attribute.offset = offset;
     attribute.type = getGLTypeEnum<T>();
     if (attribute.type == 0)
@@ -945,7 +946,7 @@ void Loader::addVertexAttribute(ModelData& data, const QString &nameForShader, c
         qCritical() << Q_FUNC_INFO << "Unsupported attribute type '" << typeid(T).name() << "'";
     }
 
-    data.vertexStride += tupleSize * sizeof(T);
+    data.vertexStride += attribute.elemSize;
 
     data.vertexAttributes.append(attribute);
 }

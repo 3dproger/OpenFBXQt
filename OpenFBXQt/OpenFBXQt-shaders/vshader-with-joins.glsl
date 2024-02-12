@@ -23,10 +23,10 @@ void main()
 {
     v_texcoord = a_texcoord;
 
-    mat4 skinningMatrix = joints[int(a_joint_indices[0])] * a_joint_weights[0];
-    skinningMatrix     += joints[int(a_joint_indices[1])] * a_joint_weights[1];
-    skinningMatrix     += joints[int(a_joint_indices[2])] * a_joint_weights[2];
-    skinningMatrix     += joints[int(a_joint_indices[3])] * a_joint_weights[3];
+    mat4 skinningMatrix = joints[a_joint_indices[0]] * a_joint_weights[0];
+    skinningMatrix     += joints[a_joint_indices[1]] * a_joint_weights[1];
+    skinningMatrix     += joints[a_joint_indices[2]] * a_joint_weights[2];
+    skinningMatrix     += joints[a_joint_indices[3]] * a_joint_weights[3];
 
     vec4 skinned_position = skinningMatrix * vec4(a_position, 1.0);
 

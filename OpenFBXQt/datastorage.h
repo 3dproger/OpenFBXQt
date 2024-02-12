@@ -19,6 +19,7 @@ struct VertexAttributeInfo
     QString nameForShader;
     GLenum type = GL_FLOAT;
     int offset = 0;
+    int elemSize = 0;
     int tupleSize = 0;
 };
 
