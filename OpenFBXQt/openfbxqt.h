@@ -7,7 +7,7 @@
 namespace ofbxqt
 {
 
-static const char* VersionLib = "0.1";
+static const char* VersionLib = "0.1.1";
 
 struct OpenModelConfig
 {
