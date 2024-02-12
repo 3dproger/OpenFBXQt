@@ -407,6 +407,11 @@ void Loader::loadJoints(const ofbx::Skin* skin, ModelData& data, QHash<GLuint, Q
             continue;
         }
 
+        if (weightsCount <= 0 || indicesCount <= 0)
+        {
+            continue;
+        }
+
         const double* weights = cluster->getWeights();
         const int* indices = cluster->getIndices();
 
@@ -711,7 +716,7 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
         qWarning() << Q_FUNC_INFO << "rawIndex less than zero but i == 0";
     }
 
-    DataStorage::data.append(data);
+    DataStorage::getInstance().data.push_back(data);
     std::shared_ptr<Model> model(new Model(data));
 
     if (data->armature)
@@ -831,8 +836,10 @@ std::shared_ptr<TextureInfo> Loader::loadTexture(const ofbx::Texture* rawTexture
         return nullptr;
     }
 
-    const auto it = DataStorage::textures.find(fileName);
-    if (it != DataStorage::textures.end())
+    auto& storage = DataStorage::getInstance();
+
+    const auto it = storage.textures.find(fileName);
+    if (it != storage.textures.end())
     {
         return it->second;
     }
@@ -847,7 +854,7 @@ std::shared_ptr<TextureInfo> Loader::loadTexture(const ofbx::Texture* rawTexture
     }
 
     std::shared_ptr<TextureInfo> texture = std::shared_ptr<TextureInfo>(new TextureInfo(image, fileName));
-    DataStorage::textures[fileName] = texture;
+    storage.textures[fileName] = texture;
 
     addNote(Note::Type::Info, QTranslator::tr("Opened %1 texture \"%2\". Mesh %3, material %4, texture %5")
                       .arg(textureTypeStr, fileName).arg(meshIndex).arg(materialIndex).arg(textureTypeStr));

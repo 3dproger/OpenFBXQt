@@ -115,8 +115,8 @@ void Scene::clear()
 {
     topLevelModels.clear();
     files.clear();
-    DataStorage::data.clear();
-    DataStorage::textures.clear();
+    DataStorage::getInstance().data.clear();
+    DataStorage::getInstance().textures.clear();
 
     if (onNeedUpdateCallback)
     {
