@@ -220,7 +220,7 @@ FileInfo Loader::open(const QString &fileName, const OpenModelConfig config_)
     const QByteArray rawData = file.readAll();
     file.close();
 
-    ofbx::IScene* scene = ofbx::load((ofbx::u8*)rawData.constData(), rawData.size(), (ofbx::u64)ofbx::LoadFlags::NONE);
+    ofbx::IScene* scene = ofbx::load((ofbx::u8*)rawData.constData(), rawData.size(), (ofbx::u16)ofbx::LoadFlags::NONE);
     if (!scene)
     {
         addNote(Note::Type::Error, QTranslator::tr("No scene"));
@@ -706,7 +706,7 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
             {
                 if (jointIndex < jointCountForVertex)
                 {
-                    rawVertexArray[idx++] = (GLfloat)jointsData[vertexIndex][jointIndex].second;
+                    rawVertexArray[idx++] = (GLfloat)jointsData[vertexIndex][jointIndex].second; // indecies of joints
                 }
                 else
                 {
@@ -718,7 +718,7 @@ std::shared_ptr<Model> Loader::loadMesh(const ofbx::Mesh *mesh, const int meshIn
             {
                 if (jointIndex < jointCountForVertex)
                 {
-                    rawVertexArray[idx++] = (GLfloat)jointsData[vertexIndex][jointIndex].first;
+                    rawVertexArray[idx++] = (GLfloat)jointsData[vertexIndex][jointIndex].first; // weights of joints
                 }
                 else
                 {
